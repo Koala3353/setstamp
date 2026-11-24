@@ -54,6 +54,26 @@ describe("pickForSpec / buildFromTemplate", () => {
     expect(isNearDuplicate({ ...a, equipment: ["cable"] }, { exId: "c", family: "triceps_extension", equipment: ["dumbbell", "bench"] })).toBe(false);
     expect(isNearDuplicate({ ...a, equipment: ["cable"] }, { exId: "d", family: null, equipment: ["cable"] })).toBe(false);
   });
+  it("offers the 5-day Upper/Lower + PPL hybrid and the bro split", () => {
+    const days = (tid: string) => TEMPLATES.find((t) => t.id === tid)?.days.map((d) => d.name);
+    expect(days("ul_ppl")).toEqual(["Upper", "Lower", "Push", "Pull", "Legs"]);
+    expect(days("bro")).toEqual(["Chest", "Back", "Shoulders", "Legs", "Arms"]);
+    for (const tid of ["ul_ppl", "bro"] as const) {
+      // FIXTURE is a 34-exercise sample, so a few accessory slots may go unfilled here.
+      const { data } = buildFromTemplate(tid, FIXTURE, [], id);
+      expect(data.days).toHaveLength(5);
+      for (const d of data.days) {
+        expect(d.slots.length).toBeGreaterThanOrEqual(2);
+        const ids = d.slots.map((s) => s.exId);
+        expect(new Set(ids).size).toBe(ids.length); // never the same exercise twice in a day
+      }
+    }
+    // Bro split days train what they say.
+    const bro = buildFromTemplate("bro", FIXTURE, [], id).data.days;
+    const trains = (i: number, ms: string[]) => bro[i]!.slots.every((s) => FIXTURE.find((e) => e.exId === s.exId)!.primary.some((m) => ms.includes(m)));
+    expect(trains(0, ["chest"])).toBe(true);
+    expect(trains(4, ["biceps", "triceps"])).toBe(true);
+  });
   it("uses seconds for hold exercises", () => {
     const { data } = buildFromTemplate("upper_lower", FIXTURE, [], id);
     for (const d of data.days) for (const s of d.slots) expect(s.repMin == null).toBe(s.durationSec != null);

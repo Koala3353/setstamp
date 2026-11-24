@@ -9,12 +9,14 @@ import { useExerciseIndex } from "../program/useProgramData";
 import { updateSettings, useUserSettings } from "../session/hooks";
 import { unitChange } from "../settings/SettingsView";
 
-type Choice = "later" | "upper_lower" | "ppl3" | "full_body";
+type Choice = "later" | "upper_lower" | "ppl3" | "full_body" | "ul_ppl" | "bro";
 
 const CHOICES: Array<{ value: Choice; label: string }> = [
   { value: "upper_lower", label: "Upper / lower" },
   { value: "ppl3", label: "Push / pull / legs" },
   { value: "full_body", label: "Full body" },
+  { value: "ul_ppl", label: "Upper / lower + PPL" },
+  { value: "bro", label: "Bro split" },
   { value: "later", label: "Set up later" },
 ];
 

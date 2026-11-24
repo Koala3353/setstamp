@@ -11,7 +11,7 @@ import type { Equipment, Muscle, Pattern } from "../../shared/domain";
 import type { PlannedSlot, ProgramData, ProgramDay } from "../../shared/sync";
 import { canUseEquipment, type ExerciseInfo } from "../coverage/coverage";
 
-export type TemplateId = "upper_lower" | "ppl3" | "ppl6" | "full_body" | "custom";
+export type TemplateId = "upper_lower" | "ppl3" | "ppl6" | "full_body" | "ul_ppl" | "bro" | "custom";
 
 export type SlotSpec = {
   /** What the slot is for, shown if nothing fits ("Vertical pull"). */
@@ -85,6 +85,13 @@ const S = {
   calves: iso("Calves", ["isolation_lower"], "calves", 3, 10, 15),
   chestIso: iso("Chest fly", ["isolation_upper"], "chest", 2, 10, 15),
   core: core("Core"),
+  // Bro split: one muscle group a day, so more work per muscle in that session.
+  hPush3: c("Third press", ["horizontal_push"], "chest", 3, 10, 12),
+  vPull2: c("Second pull", ["vertical_pull"], "lats", 3, 8, 12),
+  vPush2: c("Second shoulder press", ["vertical_push"], "front_delts", 3, 8, 12),
+  shrug: iso("Traps", ["isolation_upper"], "traps", 3, 10, 15),
+  armBiceps: iso("Biceps", ["isolation_upper"], "biceps", 3, 8, 12),
+  armTriceps: iso("Triceps", ["isolation_upper"], "triceps", 3, 8, 12),
 } satisfies Record<string, SlotSpec>;
 
 const PUSH = [S.hPush, S.vPush, S.hPush2, S.sideDelt, S.triceps, S.triceps];
@@ -138,6 +145,32 @@ export const TEMPLATES: TemplateDef[] = [
       { name: "Full body A", focus: "Squat, horizontal press, row", slots: [S.squat, S.hPush, S.hPull, S.biceps, S.core] },
       { name: "Full body B", focus: "Hinge, vertical press, pull-up", slots: [S.hinge, S.vPush, S.vPull, S.triceps, S.calves] },
       { name: "Full body C", focus: "Lunge, second press, accessories", slots: [S.lunge, S.hPush2, S.hPull, S.sideDelt, S.hamIso] },
+    ],
+  },
+  {
+    id: "ul_ppl",
+    name: "Upper / Lower + Push / Pull / Legs",
+    meta: "5 days · upper and lower, then push, pull, legs",
+    kind: "upper_lower",
+    days: [
+      { name: "Upper", focus: "Press and row, arms", slots: [S.hPush, S.hPull, S.vPush, S.vPull, S.biceps, S.triceps] },
+      { name: "Lower", focus: "Squat, hinge, single-leg", slots: [S.squat, S.hinge, S.lunge, S.hamIso, S.calves] },
+      { name: "Push", focus: "Chest, shoulders, triceps", slots: PUSH },
+      { name: "Pull", focus: "Back, rear delts, biceps", slots: PULL },
+      { name: "Legs", focus: "Quads, glutes, hamstrings, core", slots: [S.squat2, S.hipThrust, S.quadIso, S.hamIso, S.calves, S.core] },
+    ],
+  },
+  {
+    id: "bro",
+    name: "Bro split",
+    meta: "5 days · one muscle group a day",
+    kind: "custom",
+    days: [
+      { name: "Chest", focus: "Presses and a fly", slots: [S.hPush, S.hPush2, S.hPush3, S.chestIso] },
+      { name: "Back", focus: "Vertical pulls and rows", slots: [S.vPull, S.hPull, S.hPull, S.vPull2] },
+      { name: "Shoulders", focus: "Overhead press, delts, traps", slots: [S.vPush, S.vPush2, S.sideDelt, S.rearDelt, S.shrug] },
+      { name: "Legs", focus: "Squat, hinge, quads, hamstrings, calves", slots: [S.squat, S.hinge, S.squat2, S.quadIso, S.hamIso, S.calves] },
+      { name: "Arms", focus: "Biceps and triceps", slots: [S.armBiceps, S.armTriceps, S.armBiceps, S.armTriceps, S.armBiceps, S.armTriceps] },
     ],
   },
   { id: "custom", name: "Custom", meta: "Name your own days and fill them", kind: "custom", days: [] },
