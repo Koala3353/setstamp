@@ -139,7 +139,10 @@ export type PrCard =
   | { kind: "most_reps"; reps: number }
   | { kind: "least_assist"; reps: number; kg: number }
   | { kind: "longest_duration"; sec: number }
-  | { kind: "session_volume"; kg: number };
+  | { kind: "session_volume"; kg: number }
+  | { kind: "longest_at_load"; kg: number; sec: number }
+  | { kind: "heaviest_hold"; kg: number; sec: number }
+  | { kind: "load_distance"; kg: number; m: number };
 
 /** All-time bests for one exercise, from its done working sets. Rep-count cards ascend by reps. */
 export function prCards(sets: readonly SetData[], tracking: Tracking): PrCard[] {
@@ -151,6 +154,9 @@ export function prCards(sets: readonly SetData[], tracking: Tracking): PrCard[] 
   for (const [reps, kg] of [...b.leastAssistAtReps].sort((x, y) => x[0] - y[0])) out.push({ kind: "least_assist", reps, kg });
   if (b.longestDuration !== null) out.push({ kind: "longest_duration", sec: b.longestDuration });
   if (b.sessionVolume !== null) out.push({ kind: "session_volume", kg: b.sessionVolume });
+  if (b.heaviestHold) out.push({ kind: "heaviest_hold", kg: b.heaviestHold.kg, sec: b.heaviestHold.sec });
+  for (const [kg, sec] of [...b.longestAtLoad].sort((x, y) => y[0] - x[0])) out.push({ kind: "longest_at_load", kg, sec });
+  if (b.loadDistance) out.push({ kind: "load_distance", kg: b.loadDistance.kg, m: b.loadDistance.m });
   return out;
 }
 
@@ -162,8 +168,10 @@ export function prCards(sets: readonly SetData[], tracking: Tracking): PrCard[] 
  * reps   — most reps in one set (bodyweight)
  * assist — least assistance in one set (assisted; lower is better)
  * hold   — longest hold in seconds (timed)
+ * load   — heaviest load held or carried (weight + time, weight + distance)
+ * carry  — best load × distance in one set (weight + distance; kg·m)
  */
-export type TrendMetric = "top" | "e1rm" | "reps" | "assist" | "hold";
+export type TrendMetric = "top" | "e1rm" | "reps" | "assist" | "hold" | "load" | "carry";
 
 export type TrendPoint = {
   sessionCid: string;
@@ -186,6 +194,10 @@ export function metricsFor(tracking: Tracking, sets: readonly SetData[] = []): T
     case "duration":
     case "distance_time":
       return ["hold"];
+    case "weight_duration":
+      return ["load", "hold"];
+    case "weight_distance":
+      return ["load", "carry"];
   }
 }
 
@@ -201,6 +213,10 @@ function pointValue(s: SetData, metric: TrendMetric): number | null {
       return s.assistKg !== null && (s.reps ?? 0) > 0 ? s.assistKg : null;
     case "hold":
       return s.durationSec !== null && s.durationSec > 0 ? s.durationSec : null;
+    case "load":
+      return s.weightKg !== null && s.weightKg > 0 && ((s.durationSec ?? 0) > 0 || (s.distanceM ?? 0) > 0) ? s.weightKg : null;
+    case "carry":
+      return s.weightKg !== null && s.weightKg > 0 && (s.distanceM ?? 0) > 0 ? s.weightKg * s.distanceM! : null;
   }
 }
 

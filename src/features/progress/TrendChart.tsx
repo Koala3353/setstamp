@@ -17,7 +17,33 @@ const BOX: ChartBox = {
   padB: 32,
 };
 
-export function TrendChart({ points, metric, unit }: { points: readonly TrendPoint[]; metric: TrendMetric; unit: Unit }) {
+type ChartPoint = Pick<TrendPoint, "sessionCid" | "at" | "value">;
+
+/**
+ * `metric` picks the label, formatting and "best" direction. Callers plotting something that is
+ * not a TrendMetric (bodyweight) pass `label` + `format` + `axisUnit`, and `markBest={false}` when
+ * the highest value is not an achievement.
+ */
+export function TrendChart({
+  points,
+  metric,
+  unit,
+  label,
+  format,
+  axisUnit: axisUnitProp,
+  markBest = true,
+}: {
+  points: readonly ChartPoint[];
+  metric: TrendMetric;
+  unit: Unit;
+  label?: string;
+  /** Value (stored units) → display string. */
+  format?: (value: number) => string;
+  axisUnit?: string;
+  markBest?: boolean;
+}) {
+  const name = label ?? METRIC_LABEL[metric];
+  const fmt = (v: number) => (format ? format(v) : fmtMetric(metric, v, unit));
   const titleId = useId();
   const data = useMemo(
     () =>
@@ -30,12 +56,13 @@ export function TrendChart({ points, metric, unit }: { points: readonly TrendPoi
   const layout = useMemo(() => layoutChart(data, BOX), [data]);
   const lowerIsBetter = metric === "assist";
   const bestIdx = useMemo(() => {
+    if (!markBest) return -1;
     let b = -1;
     points.forEach((p, i) => {
       if (b < 0 || (lowerIsBetter ? p.value < points[b]!.value : p.value > points[b]!.value)) b = i;
     });
     return b;
-  }, [points, lowerIsBetter]);
+  }, [points, lowerIsBetter, markBest]);
 
   // Tapped point for the readout; defaults to the latest session. Phones have no hover.
   const [picked, setPicked] = useState<number | null>(null);
@@ -47,14 +74,14 @@ export function TrendChart({ points, metric, unit }: { points: readonly TrendPoi
   const last = points[points.length - 1]!;
   const summary =
     points.length === 1
-      ? `${METRIC_LABEL[metric]}: one session, ${fmtMetric(metric, first.value, unit)} on ${fmtDate(first.at)}.`
-      : `${METRIC_LABEL[metric]} over ${points.length} sessions, from ${fmtMetric(metric, first.value, unit)} on ${fmtDate(first.at)} to ${fmtMetric(metric, last.value, unit)} on ${fmtDate(last.at)}.`;
-  const axisUnit = metric === "reps" ? "reps" : metric === "hold" ? "s" : unit;
+      ? `${name}: one session, ${fmt(first.value)} on ${fmtDate(first.at)}.`
+      : `${name} over ${points.length} sessions, from ${fmt(first.value)} on ${fmtDate(first.at)} to ${fmt(last.value)} on ${fmtDate(last.at)}.`;
+  const axisUnit = axisUnitProp ?? (metric === "reps" ? "reps" : metric === "hold" ? "s" : unit);
 
   return (
     <figure className="trend">
       <p className="trend__readout">
-        <span className="trend__value num">{fmtMetric(metric, selPt.value, unit)}</span>
+        <span className="trend__value num">{fmt(selPt.value)}</span>
         <span className="trend__when">
           {fmtDate(selPt.at)}
           {sel === bestIdx && points.length > 1 && <span className="trend__best"> · best session</span>}
@@ -108,8 +135,11 @@ export function TrendChart({ points, metric, unit }: { points: readonly TrendPoi
         ))}
       </svg>
       <figcaption className="trend__caption">
-        <span className="trend__key" aria-hidden="true" /> Best session · one dot per session, tap for its value
-        {points.length < 3 && <span> · A trend needs a few more sessions.</span>}
+        {markBest && <span className="trend__key" aria-hidden="true" />}
+        <span className="trend__captext">
+          {markBest ? "Best session · one" : "One"} dot per session, tap for its value
+          {points.length < 3 && <span> · A trend needs a few more sessions.</span>}
+        </span>
       </figcaption>
       <details className="trend__table">
         <summary>Show as table</summary>
@@ -118,14 +148,14 @@ export function TrendChart({ points, metric, unit }: { points: readonly TrendPoi
           <thead>
             <tr>
               <th scope="col">Date</th>
-              <th scope="col">{METRIC_LABEL[metric]}</th>
+              <th scope="col">{name}</th>
             </tr>
           </thead>
           <tbody>
             {[...points].reverse().map((p) => (
               <tr key={p.sessionCid}>
                 <td>{fmtDate(p.at)}</td>
-                <td>{fmtMetric(metric, p.value, unit)}</td>
+                <td>{fmt(p.value)}</td>
               </tr>
             ))}
           </tbody>

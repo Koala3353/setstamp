@@ -1,8 +1,9 @@
-// Progress tab: this week's numbers, workout history, exercises you've logged, and the
+// Progress tab: this week's numbers, stats over a chosen range, workout history, exercises you've logged, and the
 // completed-muscle estimate. Query params open a detail view: ?session=<cid> or ?ex=<exId>.
 import { useMemo, useState } from "react";
-import { BodyMap, BodyMapLegend } from "../../bodymap";
+import { BodyMap, BodyMapLegend, MuscleList } from "../../bodymap";
 import { goBack, href, navigate, pathFor, useRoute } from "../../app/router";
+import type { Muscle } from "../../shared/domain";
 import { useRows } from "../../sync/react";
 import {
   Button,
@@ -30,11 +31,13 @@ import { useExerciseLookup } from "../workout/exerciseInfo";
 import { ExerciseHistorySlot } from "./ExerciseHistory";
 import { fmtDate, fmtMinutes, fmtVolume } from "./format";
 import { MetricsHelp } from "./MetricsSheet";
+import { MuscleSheet } from "./MuscleSheet";
 import { loggedExercises, weeklySummary, weekStart, workoutHistory } from "./model";
 import { SessionDetail } from "./SessionDetail";
+import { StatsPanel } from "./StatsPanel";
 import "./progress.css";
 
-type View = "workouts" | "exercises" | "muscles";
+type View = "stats" | "workouts" | "exercises" | "muscles";
 
 const weekFmt = new Intl.DateTimeFormat(undefined, {
   weekday: "long",
@@ -61,7 +64,7 @@ function DatePlate({ at }: { at: number }) {
 }
 const ID = "progress";
 // Remembered while the app is open, so returning from a detail view keeps your tab.
-let lastView: View = "workouts";
+let lastView: View = "stats";
 
 export function ProgressView() {
   const route = useRoute();
@@ -110,6 +113,7 @@ function Overview() {
         value={view}
         onChange={setView}
         options={[
+          { value: "stats", label: "Stats" },
           { value: "workouts", label: "Workouts" },
           { value: "exercises", label: "Exercises" },
           { value: "muscles", label: "Muscles" },
@@ -138,6 +142,7 @@ function Overview() {
               ))}
             </ListGroup>
           ))}
+        {view === "stats" && <StatsPanel now={now} />}
         {view === "exercises" && <ExerciseList />}
         {view === "muscles" && <WeekMuscles now={now} />}
       </TabPanel>
@@ -180,26 +185,47 @@ function ExerciseList() {
 
 function WeekMuscles({ now }: { now: number }) {
   const sets = useRows("sets");
-  const { lookup } = useExerciseIndex();
+  const sessions = useRows("sessions");
+  const { list, lookup } = useExerciseIndex();
   const week = weekStart(now);
   const levels = useMemo(() => {
     const done = sets.map((r) => r.data).filter((d): d is NonNullable<typeof d> => !!d);
     return completedCoverage(done, lookup, now, now - week);
   }, [sets, lookup, now, week]);
   const any = Object.keys(levels).length > 0;
+  // `shown` outlives `open` so the sheet keeps its content while it animates closed.
+  const [shown, setShown] = useState<Muscle | null>(null);
+  const [open, setOpen] = useState(false);
+  const show = (m: Muscle | null) => {
+    if (!m) return;
+    setShown(m);
+    setOpen(true);
+  };
   return (
     <div className="stack">
       <p className="muted">
         Estimated working sets per muscle since Monday. {ESTIMATE_NOTE} It shows what you trained, not soreness, recovery or injury.
       </p>
       <Card className="weekmap">
-        <BodyMap levels={levels} mode="volume" />
+        <BodyMap levels={levels} mode="volume" selected={open ? shown : null} onSelect={show} opensDialog valueContext="this week" />
         <BodyMapLegend mode="volume" />
+        <p className="weekmap__hint small muted">Tap a muscle, or pick one below, for its weekly trend and exercises.</p>
+        <MuscleList levels={levels} onSelect={show} label="Muscles trained this week" emptyLabel="No sets this week" />
       </Card>
       {!any && <p className="muted small">Nothing finished this week yet. Muscles fill in as you complete working sets.</p>}
       <Button variant="secondary" onClick={() => navigate(pathFor("program"))}>
         Compare with your planned week
       </Button>
+      <MuscleSheet
+        muscle={shown}
+        open={open}
+        onClose={() => setOpen(false)}
+        sets={sets}
+        sessions={sessions}
+        lookup={lookup}
+        catalog={list}
+        now={now}
+      />
     </div>
   );
 }

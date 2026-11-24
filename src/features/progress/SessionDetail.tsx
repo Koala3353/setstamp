@@ -1,10 +1,15 @@
 // One finished (or in-progress) workout: totals, records set that day, and every exercise's sets.
 // Reachable at #/progress?session=<cid> (the program timeline links here).
-import { useMemo } from "react";
+// A finished workout can be fixed after the fact: name, date, notes, any set, or deleted (with Undo).
+import { useMemo, useState } from "react";
 import { goBack, href, pathFor } from "../../app/router";
-import { useRows } from "../../sync/react";
-import { Button, Card, EmptyState, IconChevronLeft, IconChevronRight, IconHistory, SectionHeader, Stat, StatGrid } from "../../ui";
+import type { SetData } from "../../shared/sync";
+import { useRows, useSyncStore } from "../../sync/react";
+import { Button, Card, EmptyState, IconChevronLeft, IconChevronRight, IconHistory, IconTrash, SectionHeader, Stat, StatGrid, useToast } from "../../ui";
+import { DeleteSessionSheet, SessionEditSheet, useDeleteSession } from "../history/SessionActions";
 import { useUserSettings } from "../session/hooks";
+import { SetEditor } from "../workout/SetEditor";
+import { removeRows, restoreRows, type Snapshot } from "../workout/ops";
 import { useExerciseLookup } from "../workout/exerciseInfo";
 import { describePR, summarize } from "../workout/summary";
 import { fmtDate, fmtMinutes, fmtSet, fmtVolume, KIND_LABEL } from "./format";
@@ -20,7 +25,13 @@ export function SessionDetail({ sessionCid }: { sessionCid: string }) {
   const sessionExercises = useRows("sessionExercises");
   const sets = useRows("sets");
   const lookup = useExerciseLookup();
-  const { unit } = useUserSettings();
+  const settings = useUserSettings();
+  const { unit } = settings;
+  const store = useSyncStore();
+  const toast = useToast();
+  const removeSession = useDeleteSession(store);
+  const [sheet, setSheet] = useState<"edit" | "delete" | null>(null);
+  const [editingSet, setEditingSet] = useState<string | null>(null);
 
   const session = sessions.find((r) => r.cid === sessionCid)?.data ?? null;
 
@@ -29,7 +40,9 @@ export function SessionDetail({ sessionCid }: { sessionCid: string }) {
     // Records are judged only against sessions that came before this one.
     const earlier = sessions.filter((r) => r.data && r.data.startedAt < session.startedAt);
     const summary = summarize(sessionCid, session, sessionExercises, earlier, sets, lookup);
-    const mine = sets.map((r) => r.data).filter((s): s is NonNullable<typeof s> => !!s && s.sessionCid === sessionCid);
+    const mine = sets
+      .filter((r): r is typeof r & { data: SetData } => !!r.data && r.data.sessionCid === sessionCid)
+      .map((r) => ({ ...r.data, cid: r.cid }));
     const exercises = sessionExercises
       .map((r) => ({ cid: r.cid, d: r.data }))
       .filter((r): r is { cid: string; d: NonNullable<typeof r.d> } => !!r.d && r.d.sessionCid === sessionCid)
@@ -41,7 +54,7 @@ export function SessionDetail({ sessionCid }: { sessionCid: string }) {
         substitutedFrom: d.substitutedFromExId,
         sets: mine.filter((s) => s.sessionExerciseCid === cid).sort((a, b) => a.order - b.order),
       }));
-    return { summary, exercises };
+    return { summary, exercises, setCount: mine.filter((s) => s.done).length };
   }, [session, sessions, sessionExercises, sets, sessionCid, lookup]);
 
   const back = (
@@ -61,18 +74,44 @@ export function SessionDetail({ sessionCid }: { sessionCid: string }) {
     );
   }
 
-  const { summary, exercises } = view;
+  const { summary, exercises, setCount } = view;
+  const finished = session.endedAt !== null;
+  const editRow = editingSet ? sets.find((r) => r.cid === editingSet) : undefined;
+  const editSet = editRow?.data ?? null;
+  const editInfo = editSet ? lookup(editSet.exId) : null;
+
+  const deleteSet = (cid: string, data: SetData) => {
+    if (!store) return;
+    const snap: Snapshot = [{ table: "sets", cid, data }];
+    void removeRows(store, snap);
+    setEditingSet(null);
+    toast.show({ message: "Set deleted", action: { label: "Undo", onAction: () => void restoreRows(store, snap) } });
+  };
+
+  const confirmDelete = async () => {
+    setSheet(null);
+    goBack("/progress");
+    await removeSession(sessionCid);
+  };
+
   return (
     <article className="stack sessiondetail" aria-labelledby="session-title">
       {back}
-      <header className="sessiondetail__head">
-        <h2 id="session-title" className="progress__title">
-          {session.name || "Workout"}
-        </h2>
-        <p className="muted">
-          {fmtDate(session.startedAt)} · {timeFmt.format(session.startedAt)}
-          {session.endedAt === null && " · in progress"}
-        </p>
+      <header className="sessiondetail__head hist-head">
+        <div>
+          <h2 id="session-title" className="progress__title">
+            {session.name || "Workout"}
+          </h2>
+          <p className="muted">
+            {fmtDate(session.startedAt)} · {timeFmt.format(session.startedAt)}
+            {!finished && " · in progress"}
+          </p>
+        </div>
+        {finished && store && (
+          <Button variant="secondary" onClick={() => setSheet("edit")}>
+            Edit
+          </Button>
+        )}
       </header>
 
       <Card>
@@ -125,9 +164,18 @@ export function SessionDetail({ sessionCid }: { sessionCid: string }) {
                       ) : (
                         <ol className="setlist">
                           {done.map((s) => (
-                            <li key={s.order} className={s.kind === "warmup" ? "setlist__row setlist__row--warm" : "setlist__row"}>
-                              <span className="setlist__kind">{KIND_LABEL[s.kind]}</span>
-                              <span className="setlist__val num">{fmtSet(s, unit)}</span>
+                            <li key={s.cid} className={s.kind === "warmup" ? "setlist__row setlist__row--warm" : "setlist__row"}>
+                              {finished && store ? (
+                                <button type="button" className="hist-set" aria-label={`Edit ${KIND_LABEL[s.kind]} ${fmtSet(s, unit)}`} onClick={() => setEditingSet(s.cid)}>
+                                  <span className="setlist__kind">{KIND_LABEL[s.kind]}</span>
+                                  <span className="setlist__val num">{fmtSet(s, unit)}</span>
+                                </button>
+                              ) : (
+                                <>
+                                  <span className="setlist__kind">{KIND_LABEL[s.kind]}</span>
+                                  <span className="setlist__val num">{fmtSet(s, unit)}</span>
+                                </>
+                              )}
                             </li>
                           ))}
                         </ol>
@@ -149,6 +197,42 @@ export function SessionDetail({ sessionCid }: { sessionCid: string }) {
         </section>
       )}
       <MetricsHelp />
+
+      {finished && store && (
+        <>
+          <Button variant="ghost" className="hist-delete" icon={<IconTrash size={20} />} onClick={() => setSheet("delete")}>
+            Delete workout
+          </Button>
+          {sheet === "edit" && <SessionEditSheet open store={store} sessionCid={sessionCid} session={session} onClose={() => setSheet(null)} />}
+          <DeleteSessionSheet
+            open={sheet === "delete"}
+            label={`${session.name || "Workout"} · ${fmtDate(session.startedAt)}`}
+            exercises={exercises.length}
+            sets={setCount}
+            onClose={() => setSheet(null)}
+            onConfirm={() => void confirmDelete()}
+          />
+        </>
+      )}
+      {store && editRow && editSet && editInfo && (
+        <SetEditor
+          key={editRow.cid}
+          open
+          set={editSet}
+          info={editInfo}
+          settings={settings}
+          title={`${editInfo.name} · ${editSet.kind === "warmup" ? "warm-up" : "set"}`}
+          onClose={() => setEditingSet(null)}
+          onSave={(next) => {
+            if (JSON.stringify(next) !== JSON.stringify(editSet)) void store.write("sets", editRow.cid, next);
+          }}
+          onLog={(next) => {
+            setEditingSet(null);
+            void store.write("sets", editRow.cid, next);
+          }}
+          onDelete={() => deleteSet(editRow.cid, editSet)}
+        />
+      )}
     </article>
   );
 }

@@ -58,7 +58,7 @@ export function ExerciseHistorySlot({ exId }: { exId: string }) {
                 <li key={`${c.kind}-${"reps" in c ? c.reps : ""}`} className="prs__card">
                   <Stat
                     tone="record"
-                    label={prTitle(c)}
+                    label={prTitle(c, unit)}
                     value={v.value}
                     unit={v.unit}
                     note={c.kind === "e1rm" ? "Estimate (Epley, sets of ≤10 reps)" : undefined}

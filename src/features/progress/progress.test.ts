@@ -101,8 +101,8 @@ describe("csv", () => {
     const lines = csv.trimEnd().split("\r\n");
     expect(lines[0]).toBe(CSV_HEADER.join(","));
     expect(lines).toHaveLength(3);
-    expect(lines[1]).toContain(',"Push, heavy",Bench press,warmup,135,lb,5,,,,"felt ""easy"""');
-    expect(lines[2]).toContain(",working,225,lb,5,,,8,");
+    expect(lines[1]).toContain(',"Push, heavy",Bench press,warmup,135,lb,5,,,,,"felt ""easy"""');
+    expect(lines[2]).toContain(",working,225,lb,5,,,,8,");
   });
 
   it("falls back to kg when no entered value exists", () => {
@@ -259,6 +259,24 @@ describe("trend series", () => {
     expect(metricsFor("bodyweight_reps", [set({ weightKg: null })])).toEqual(["reps"]);
     expect(metricsFor("bodyweight_reps", [set({ weightKg: 10 })])).toEqual(["reps", "top", "e1rm"]);
     expect(metricsFor("duration")).toEqual(["hold"]);
+    expect(metricsFor("weight_duration")).toEqual(["load", "hold"]);
+    expect(metricsFor("weight_distance")).toEqual(["load", "carry"]);
+  });
+
+  it("weight + time and weight + distance get their own cards and trends, never e1RM or volume", () => {
+    const holds = [set({ weightKg: 20, reps: null, durationSec: 60 }), set({ weightKg: 30, reps: null, durationSec: 20 })];
+    expect(prCards(holds, "weight_duration")).toEqual([
+      { kind: "heaviest_hold", kg: 30, sec: 20 },
+      { kind: "longest_at_load", kg: 30, sec: 20 },
+      { kind: "longest_at_load", kg: 20, sec: 60 },
+    ]);
+    const carries = [set({ weightKg: 40, entered: null, reps: null, distanceM: 30 }), set({ weightKg: 50, entered: null, reps: null, distanceM: 20 })];
+    expect(prCards(carries, "weight_distance")).toEqual([{ kind: "load_distance", kg: 40, m: 30 }]);
+    const h = [{ sessionCid: "x", name: "", startedAt: 1, sets: carries }];
+    expect(trendSeries(h, "load")[0]!.value).toBe(50);
+    expect(trendSeries(h, "carry")[0]!.value).toBe(1200);
+    const csv = buildSetsCsv({ sessions: [session("s1", NOW)], sessionExercises: [], sets: [row(carries[0]!)] }, () => "Carry");
+    expect(csv.split("\r\n")[1]).toContain(",Carry,working,40,kg,,,,30,,");
   });
 
   it("lays out points in the box with nice ticks", () => {

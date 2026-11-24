@@ -1,5 +1,5 @@
 import { useId, type KeyboardEvent, type MouseEvent } from "react";
-import { MUSCLE_INFO, type Muscle } from "../shared/domain";
+import { MUSCLE_INFO, MUSCLES, type Muscle } from "../shared/domain";
 import { displayStep, sortedInvolved, VOLUME_STEP_LABELS, type BodyMapMode, type MuscleLevels } from "./levels";
 import {
   DETAIL_PATHS,
@@ -21,6 +21,10 @@ export type BodyMapProps = {
   onSelect?: (m: Muscle | null) => void;
   compact?: boolean;
   className?: string;
+  /** Appended to each muscle's accessible name, e.g. "this week". */
+  valueContext?: string;
+  /** Muscles open a dialog (e.g. a detail sheet) instead of toggling a selection. */
+  opensDialog?: boolean;
 };
 
 const GAP = 20;
@@ -40,13 +44,14 @@ function fillFor(mode: BodyMapMode, step: number, uid: string): string {
   return step >= 2 ? "var(--bm-primary)" : `url(#${uid}-hatch)`;
 }
 
-function describe(mode: BodyMapMode, m: Muscle, value: number | undefined): string {
+function describe(mode: BodyMapMode, m: Muscle, value: number | undefined, context?: string): string {
   const label = MUSCLE_INFO[m].label;
   if (mode === "volume") {
     const v = value ?? 0;
-    if (v <= 0) return `${label}, no sets`;
+    const tail = context ? ` ${context}` : "";
+    if (v <= 0) return `${label}, no sets${tail}`;
     const r = Math.round(v * 10) / 10;
-    return `${label}, about ${r} ${r === 1 ? "set" : "sets"}`;
+    return `${label}, about ${r} ${r === 1 ? "set" : "sets"}${tail}`;
   }
   const step = displayStep("involvement", value);
   return `${label}, ${step === 2 ? "primary" : step === 1 ? "secondary" : "not worked"}`;
@@ -71,9 +76,11 @@ type FigureProps = {
   selected: Muscle | null;
   interactive: boolean;
   onPick?: (m: Muscle) => void;
+  valueContext?: string;
+  opensDialog?: boolean;
 };
 
-function Figure({ view, levels, mode, uid, selected, interactive, onPick }: FigureProps) {
+function Figure({ view, levels, mode, uid, selected, interactive, onPick, valueContext, opensDialog }: FigureProps) {
   const regions = MUSCLE_PATHS[view];
   const order = PAINT_ORDER.filter((m) => regions[m]);
   return (
@@ -119,8 +126,9 @@ function Figure({ view, levels, mode, uid, selected, interactive, onPick }: Figu
             role={tabbable ? "button" : undefined}
             tabIndex={tabbable ? 0 : -1}
             aria-hidden={tabbable ? undefined : true}
-            aria-label={tabbable ? describe(mode, m, levels[m]) : undefined}
-            aria-pressed={tabbable ? isSel : undefined}
+            aria-label={tabbable ? describe(mode, m, levels[m], valueContext) : undefined}
+            aria-pressed={tabbable && !opensDialog ? isSel : undefined}
+            aria-haspopup={tabbable && opensDialog ? "dialog" : undefined}
             onClick={(e: MouseEvent) => {
               e.stopPropagation();
               onPick?.(m);
@@ -144,9 +152,19 @@ function Figure({ view, levels, mode, uid, selected, interactive, onPick }: Figu
 }
 
 /** Interactive front/back muscle map. */
-export function BodyMap({ levels, mode = "involvement", selected = null, onSelect, compact = false, className }: BodyMapProps) {
+export function BodyMap({
+  levels,
+  mode = "involvement",
+  selected = null,
+  onSelect,
+  compact = false,
+  className,
+  valueContext,
+  opensDialog = false,
+}: BodyMapProps) {
   const uid = useSafeId();
-  const pick = (m: Muscle) => onSelect?.(selected === m ? null : m);
+  const pick = (m: Muscle) => onSelect?.(!opensDialog && selected === m ? null : m);
+  const fig = { levels, mode, uid, selected, interactive: true, onPick: pick, valueContext, opensDialog };
   const h = FIGURE_H + (compact ? 0 : LABEL_H);
   return (
     <svg
@@ -154,12 +172,12 @@ export function BodyMap({ levels, mode = "involvement", selected = null, onSelec
       viewBox={`-4 -2 ${VIEW_W + 8} ${h + 4}`}
       role="group"
       aria-label={mode === "volume" ? "Muscle map, estimated weekly sets" : "Muscle map, front and back"}
-      onClick={() => onSelect?.(null)}
+      onClick={opensDialog ? undefined : () => onSelect?.(null)}
     >
       <HatchDefs uid={uid} />
-      <Figure view="front" levels={levels} mode={mode} uid={uid} selected={selected} interactive onPick={pick} />
+      <Figure view="front" {...fig} />
       <g transform={`translate(${BACK_X} 0)`}>
-        <Figure view="back" levels={levels} mode={mode} uid={uid} selected={selected} interactive onPick={pick} />
+        <Figure view="back" {...fig} />
       </g>
       {!compact && (
         <g aria-hidden="true">
@@ -288,5 +306,63 @@ export function MuscleChips({
         );
       })}
     </ul>
+  );
+}
+
+/**
+ * Compact list of every muscle with its estimated sets (volume mode), most first. Muscles with no
+ * sets sit in a collapsed group. Each row is a 44px button: the large-target way to reach small
+ * muscles that are hard to tap on the figure.
+ */
+export function MuscleList({
+  levels,
+  onSelect,
+  label = "Muscles by estimated sets",
+  emptyLabel = "No sets",
+  className,
+}: {
+  levels: MuscleLevels;
+  onSelect: (m: Muscle) => void;
+  label?: string;
+  /** Summary for the collapsed group of muscles with no sets. */
+  emptyLabel?: string;
+  className?: string;
+}) {
+  const uid = useSafeId();
+  const trained = sortedInvolved(levels);
+  const rest = MUSCLES.filter((m) => !((levels[m] ?? 0) > 0));
+  const row = (m: Muscle) => {
+    const v = levels[m] ?? 0;
+    const r = Math.round(v * 10) / 10;
+    const step = displayStep("volume", v);
+    return (
+      <li key={m}>
+        <button type="button" className="bm-row" aria-haspopup="dialog" onClick={() => onSelect(m)}>
+          <Swatch fill={fillFor("volume", step, uid)} uid={uid} />
+          <span className="bm-row__name">{MUSCLE_INFO[m].label}</span>
+          <span className="bm-row__val num">
+            {r}
+            <span className="bm-row__unit">{r === 1 ? " set" : " sets"}</span>
+          </span>
+        </button>
+      </li>
+    );
+  };
+  return (
+    <div className={`bm-list${className ? ` ${className}` : ""}`}>
+      {trained.length > 0 && (
+        <ul className="bm-list__rows" aria-label={label}>
+          {trained.map(row)}
+        </ul>
+      )}
+      {rest.length > 0 && (
+        <details className="bm-list__rest">
+          <summary>
+            {emptyLabel} <span className="num">({rest.length})</span>
+          </summary>
+          <ul className="bm-list__rows">{rest.map(row)}</ul>
+        </details>
+      )}
+    </div>
   );
 }

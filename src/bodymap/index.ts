@@ -1,4 +1,4 @@
-export { BodyMap, BodyMapLegend, MiniBodyMap, MuscleChips, type BodyMapProps } from "./BodyMap";
+export { BodyMap, BodyMapLegend, MiniBodyMap, MuscleChips, MuscleList, type BodyMapProps } from "./BodyMap";
 export {
   involvementLevels,
   volumeLevels,

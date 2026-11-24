@@ -48,6 +48,7 @@ export function fmtSet(s: SetData, unit: Unit): string {
   else if (w !== null && w > 0) parts.push(`${fmtNum(w)} ${unit}`);
   if (s.reps !== null) parts.push(`${s.reps} reps`);
   if (s.durationSec !== null) parts.push(`${s.durationSec} s`);
+  if (s.distanceM !== null) parts.push(`${fmtNum(s.distanceM)} m`);
   const main = parts.join(" × ") || "–";
   return s.rpe !== null ? `${main} · RPE ${fmtNum(s.rpe)}` : main;
 }
@@ -65,6 +66,8 @@ export const METRIC_LABEL: Record<TrendMetric, string> = {
   reps: "Most reps",
   assist: "Assistance",
   hold: "Longest hold",
+  load: "Heaviest load",
+  carry: "Load × distance",
 };
 
 export const METRIC_DESCRIPTION: Record<TrendMetric, string> = {
@@ -73,12 +76,15 @@ export const METRIC_DESCRIPTION: Record<TrendMetric, string> = {
   reps: "Most reps in one working set each session.",
   assist: "Least assistance in one working set each session. Lower means less help.",
   hold: "Longest working hold each session.",
+  load: "Heaviest load held or carried in one working set each session, whatever the time or distance.",
+  carry: "Best load × distance in one working set each session (kg·m or lb·m). Not comparable with lifting volume.",
 };
 
 /** Value of a trend point in display units ("102.5 kg", "12 reps", "45 s"). */
 export function fmtMetric(metric: TrendMetric, value: number, unit: Unit): string {
   if (metric === "reps") return `${value} reps`;
   if (metric === "hold") return `${value} s`;
+  if (metric === "carry") return `${fmtInt(kgToDisplay(value, unit) ?? 0)} ${unit}·m`;
   return fmtLoad(value, unit);
 }
 
@@ -87,7 +93,7 @@ export function metricAxisValue(metric: TrendMetric, value: number, unit: Unit):
   return metric === "reps" || metric === "hold" ? value : (kgToDisplay(value, unit) ?? value);
 }
 
-export function prTitle(c: PrCard): string {
+export function prTitle(c: PrCard, unit: Unit = "kg"): string {
   switch (c.kind) {
     case "weight_at_reps":
       return c.reps === 1 ? "Heaviest single" : `Heaviest for ${c.reps} reps`;
@@ -101,6 +107,12 @@ export function prTitle(c: PrCard): string {
       return "Longest hold";
     case "session_volume":
       return "Best session volume";
+    case "longest_at_load":
+      return `Longest hold at ${fmtLoad(c.kg, unit)}`;
+    case "heaviest_hold":
+      return `Heaviest hold, ${c.sec} s`;
+    case "load_distance":
+      return "Best load × distance";
   }
 }
 
@@ -115,6 +127,11 @@ export function prValue(c: PrCard, unit: Unit): { value: string; unit: string } 
     case "most_reps":
       return { value: String(c.reps), unit: "reps" };
     case "longest_duration":
+    case "longest_at_load":
       return { value: String(c.sec), unit: "s" };
+    case "heaviest_hold":
+      return { value: fmtNum(kgToDisplay(c.kg, unit)), unit };
+    case "load_distance":
+      return { value: fmtInt(kgToDisplay(c.kg * c.m, unit) ?? 0), unit: `${unit}·m` };
   }
 }
