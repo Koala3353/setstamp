@@ -232,8 +232,8 @@ export default function Landing() {
             </h2>
             <dl className="lp-spec">
               <Spec icon={<IconProgram />} term="Programs">
-                Upper/lower, push/pull/legs (3 or 6 days) and full-body templates, or build your own days. If you miss a
-                session, that day stays next in line.
+                Templates for upper/lower, push/pull/legs (3 or 6 days), full body, upper/lower plus push/pull/legs, and a
+                bro split, or build your own days. If you miss a session, that day stays next in line.
               </Spec>
               <Spec icon={<IconDumbbell />} term="Supersets, timed and distance sets">
                 Pair exercises into a superset. Log weight and reps, weight and time for holds, or weight and distance for
