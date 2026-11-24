@@ -106,7 +106,7 @@ function TemplateChooser({
     <div className="screen">
       {!hasActive && (
         <EmptyState icon={<IconProgram />} title="No program yet">
-          <p>Programs run as a rolling queue. Finish or skip a day and the next one moves up; there are no fixed weekdays to fall behind on.</p>
+          <p>A program is a list of days that you work through in order. When you finish or skip a day, the next one comes up. Days aren't tied to weekdays.</p>
         </EmptyState>
       )}
       {onCancel && (

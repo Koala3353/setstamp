@@ -137,16 +137,16 @@ export function InstallSheet({
     <Sheet
       open={open}
       onClose={onSnooze}
-      title="Put Setstamp on your home screen"
-      description="It opens full screen from its own icon, straight into your log, and works offline."
+      title="Add Setstamp to your home screen"
+      description="It opens full screen from its own icon and works offline."
       footer={footer}
       className="inst-sheet"
     >
       {platform === "prompt" && (
         <ul className="inst-points">
-          <li>One tap from your home screen to the next set.</li>
-          <li>No browser bars taking up room while you log.</li>
-          <li>You stay signed in. Nothing to download from a store.</li>
+          <li>Open it from your home screen with one tap.</li>
+          <li>It runs full screen, without the browser's address bar.</li>
+          <li>You stay signed in, and there's no app store download.</li>
         </ul>
       )}
       {platform === "ios" && (

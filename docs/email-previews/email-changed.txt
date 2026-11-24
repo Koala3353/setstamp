@@ -14,4 +14,4 @@ https://setstamp.example
 --
 You got this because this address belongs to a Setstamp account. We send it for every change to your sign-in details.
 
-Setstamp. Stamp the set. Keep it for good.
+Setstamp. A free lifting log that works offline.

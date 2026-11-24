@@ -12,7 +12,7 @@
 export type EmailContent = { subject: string; text: string; html: string };
 
 export const APP_NAME = "Setstamp";
-export const TAGLINE = "Stamp the set. Keep it for good.";
+export const TAGLINE = "A free lifting log that works offline.";
 
 // ---------------------------------------------------------------------------
 // Tokens (DESIGN.md "Email")

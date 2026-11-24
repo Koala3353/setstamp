@@ -101,7 +101,7 @@ export function Welcome({
       <div className="auth__card stack">
         <header className="auth__head">
           <h1 className="auth__wordmark"><Wordmark height={56} /></h1>
-          <p className="auth__lede">A lifting log for one thumb between sets. Free, keeps every set, works offline.</p>
+          <p className="auth__lede">A free lifting log that works offline and keeps your full history.</p>
         </header>
 
         {mode !== "reset" && (

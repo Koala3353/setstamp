@@ -1,6 +1,6 @@
 ---
 name: Setstamp
-description: A free, offline-first lifting log built for one thumb between sets.
+description: A free lifting log that works offline.
 colors:
   # Dark theme: "powder coat" (matte black rack steel)
   powder: "#12100e"          # oklch(0.175 0.005 70)  ground
@@ -53,7 +53,7 @@ spacing: [4, 8, 12, 16, 24, 32, 48]
 
 ## Brand
 
-The product is named **Setstamp** (tagline: "Stamp the set. Keep it for good."). Name, wordmark,
+The product is named **Setstamp** (described as "A free lifting log that works offline"; no slogan). Name, wordmark,
 stamp-plate mark, app icon, social card, voice and microcopy rules live in **[BRAND.md](BRAND.md)**.
 Brand assets: `public/brand/wordmark.svg` (+ `wordmark-inverse.svg`), `public/og.png`,
 `public/icons/*`, and the `Wordmark` / `BrandMark` components in `src/ui`. They extend Station

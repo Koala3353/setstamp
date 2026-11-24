@@ -333,7 +333,7 @@ function EquipmentPicker({ value, onChange }: { value: Equipment[]; onChange: (v
       </ChipRow>
       <p className="muted small">
         {full
-          ? "Full gym: every exercise is fair game. Pick items to limit substitutions and suggestions to what you have."
+          ? "Full gym: all exercises are included. Pick items to limit substitutions and suggestions to what you have."
           : "Substitutions and suggestions stick to these. Bodyweight exercises are always allowed. Tap Full gym to clear."}
       </p>
     </div>

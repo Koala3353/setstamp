@@ -120,8 +120,8 @@ function Overview() {
           (history.length === 0 ? (
             <EmptyState icon={<IconHistory />} title="No finished workouts yet">
               <p>
-                Every workout you finish lands here, newest first: date, length, working sets and volume. Nothing is capped or trimmed after
-                a few months.
+                Finished workouts are listed here, newest first, with date, length, working sets and volume. Your full history is
+                kept.
               </p>
             </EmptyState>
           ) : (
@@ -154,7 +154,7 @@ function ExerciseList() {
   const list = useMemo(() => loggedExercises(sets, sessions), [sets, sessions]);
   if (list.length === 0) {
     return (
-      <EmptyState icon={<IconRecord />} title="Records start with your first sets">
+      <EmptyState icon={<IconRecord />} title="No records yet">
         <p>
           Each exercise you log gets its own page: heaviest weight at each rep count, best estimated 1RM, most reps or longest hold, and a
           session-by-session trend.

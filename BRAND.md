@@ -41,16 +41,14 @@ SETSTAMP in Nice classes 9 (downloadable software) and 42 (SaaS); check setstamp
 at a registrar; check handles (Instagram, TikTok, X, YouTube). A trademark lawyer confirms
 clearance. Nothing has been registered or bought.
 
-## Promise and tagline
+## Description
 
-**Promise:** every set you log is kept, free, and works without signal.
+There is no slogan. Where a tagline would go, use the plain description:
 
-**Tagline:** **Stamp the set. Keep it for good.**
+**A free lifting log that works offline.**
 
-Alternates: "Log it in one thumb. Keep it forever." / "Free lifting log. No caps, no catch."
-
-**One-liner (store / meta description):** A free lifting log for one thumb. No caps, no
-subscription, works offline.
+**Longer version (store / meta description):** A free lifting log for your phone. It works
+offline, keeps your full history and has no subscription.
 
 ## Marks
 
@@ -84,13 +82,19 @@ fine and stays.
 
 ## Voice
 
-Setstamp talks like a good gym-floor regular: knows the numbers, keeps it short, never sells.
+Write the way you'd explain the app to a friend: plain sentences that say what it does, what it
+costs and how it works. No slogans, no wordplay, no gym slang.
 
-| Trait | Do | Don't |
-|---|---|---|
-| **Plain** | Short words, verbs first, numbers as numbers: "Log set", "3 sets left". | Hype, slang, "crush it", "beast mode", exclamation marks in UI. |
-| **Honest** | Name what a number is: "Estimated 1RM", "Saved on this phone, will sync". | Overclaim: "Your true max", "Perfect form", medical claims from the body map. |
-| **Calm** | One clear next step, no guilt: "Pick up where you left off". | Streaks, nagging, scarcity, upsell: "Don't lose your streak!", "Go Pro". |
+- **Plain.** Short words, verbs first, numbers as numbers: "Log set", "3 sets left". Headlines are
+  normal statements or labels ("How it works", "Install it on your phone"), not punchlines.
+- **Specific.** Say the fact instead of a mood: "Sets save to your phone first and sync when
+  you're back online", not a line about basements.
+- **Honest.** Name what a number is: "Estimated 1RM", "Saved on this phone, will sync". No
+  overclaims ("your true max", "perfect form") and no medical claims from the body map.
+- **Calm.** One clear next step, no guilt: no streaks, nagging, scarcity or upsell.
+
+Avoid: two-beat slogan fragments ("Log the set. Keep every set."), "not X, it's Y" contrasts,
+lists of three padded to sound punchy, invented jargon, em dashes, hype and exclamation marks.
 
 Writing rules: sentence case everywhere except stencil titles (which render uppercase by CSS;
 write them in sentence case in code). Units beside numbers, never inside a sentence when a stat
@@ -112,7 +116,7 @@ will do. "You" not "we" unless the app did something ("We couldn't reach the ser
 
 | Do | Don't |
 |---|---|
-| **No workouts yet.** Start one from Today and it lands here. | Nothing to see here... yet! 👀 |
+| **No workouts yet.** Finished workouts are listed here. | Nothing to see here... yet! 👀 |
 | **No program.** Pick a template or build your own days. | Your fitness journey starts now! |
 | **No PRs for this lift yet.** Log a few working sets and your best shows here. | Unlock PR tracking by logging more! |
 
@@ -139,7 +143,7 @@ will do. "You" not "we" unless the app did something ("We couldn't reach the ser
   functional (Today, Program), not branded.
 - **Home screen:** label "Setstamp"; icon = stamp plate on powder-coat black.
 - **Email:** stencil SETSTAMP header (font with fallback), orange top bar, footer sign-off
-  "Setstamp. Stamp the set. Keep it for good." Sender name "Setstamp".
-- **Social card:** `public/og.png`, inverse wordmark, tagline, one-liner, stamp plate.
+  "Setstamp. A free lifting log that works offline." Sender name "Setstamp".
+- **Social card:** `public/og.png`, inverse wordmark, plain description, one-line summary, stamp plate.
 - **First complaint reply:** say what broke, what was kept, what happens next. No "we value your
   feedback".

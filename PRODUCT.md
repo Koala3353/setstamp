@@ -54,7 +54,7 @@ Logging is already free in most competitors; what they paywall is history depth,
 - docs/PLAN.md, docs/research/*.md.
 - Exercise catalog (free-exercise-db base + curated aliases), built by scripts/build-catalog.ts.
 - Body map component: src/bodymap/.
-- Name: **Setstamp** (2026-11-24); wordmark, mark, voice and tagline in BRAND.md. No testimonials or user counts yet. Do not invent them.
+- Name: **Setstamp** (2026-11-24); wordmark, mark, voice and plain description in BRAND.md. No testimonials or user counts yet. Do not invent them.
 
 ## Product Principles
 

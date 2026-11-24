@@ -43,7 +43,7 @@ export default defineConfig({
         id: BASE,
         name: "Setstamp: lifting log",
         short_name: "Setstamp",
-        description: "A free, offline-first lifting log built for one thumb between sets.",
+        description: "A free lifting log that works offline.",
         lang: "en",
         // Marker lets the app tell a home-screen launch apart (src/features/landing/entry.ts) even
         // where display-mode is unreliable; navigateFallback still serves index.html offline.

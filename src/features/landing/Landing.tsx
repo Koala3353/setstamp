@@ -58,23 +58,21 @@ export default function Landing() {
           <div className="lp-wrap lp-hero__grid">
             <div className="lp-hero__copy">
               <h1 id="lp-title" className="lp-hero__title display">
-                Log the set.
-                <br />
-                Keep every set.
+                A free lifting log that works offline
               </h1>
               <p className="lp-hero__lede">
-                A free lifting log built for one thumb between sets. It works offline on the gym floor, keeps your whole
-                history, and never asks for a subscription.
+                Log weight and reps with one hand between sets. It works without signal, keeps your full history, and
+                has no subscription.
               </p>
               <div className="lp-actions">
                 <CtaPrimary>Create free account</CtaPrimary>
                 <CtaSecondary>Sign in</CtaSecondary>
               </div>
-              <p className="lp-hero__fine">Free. No caps on history, programs or exercises. Export or delete your data any time.</p>
+              <p className="lp-hero__fine">Free, with no limits on history, programs or exercises. You can export or delete your data any time.</p>
             </div>
             <div className="lp-hero__visual">
               <Phone />
-              <p className="lp-caption">Sample session. The logging screen, at actual phone size.</p>
+              <p className="lp-caption">Sample session: the logging screen at actual phone size.</p>
             </div>
           </div>
         </section>
@@ -82,14 +80,14 @@ export default function Landing() {
         <section className="lp-band lp-plate" aria-labelledby="lp-how">
           <div className="lp-wrap">
             <h2 id="lp-how" className="lp-h2 display">
-              Pocket to logged set
+              How it works
             </h2>
             <ol className="lp-steps">
               <li>
                 <span className="lp-steps__n num" aria-hidden="true">1</span>
                 <div>
                   <h3>Open</h3>
-                  <p>Today shows the next day of your program. Missed a session? The queue waits; nothing shifts to the wrong weekday.</p>
+                  <p>Today shows the next day of your program. If you miss a session, it stays next in line instead of moving to a different weekday.</p>
                 </div>
               </li>
               <li>
@@ -103,7 +101,7 @@ export default function Landing() {
                 <span className="lp-steps__n num" aria-hidden="true">3</span>
                 <div>
                   <h3>See progress</h3>
-                  <p>Personal records, estimated 1RM and weekly sets per muscle, each labelled for what it is.</p>
+                  <p>Check personal records, estimated 1RM and weekly sets per muscle. Estimates are labelled as estimates.</p>
                 </div>
               </li>
             </ol>
@@ -113,16 +111,15 @@ export default function Landing() {
         <section className="lp-band lp-orange" aria-labelledby="lp-free">
           <div className="lp-wrap lp-free">
             <h2 id="lp-free" className="lp-free__title display">
-              Free means whole.
+              Everything is free
             </h2>
             <div className="lp-free__body">
               <p>
-                Most trackers let you log for free, then charge for the rest: routine slots, older history, the charts that
-                show whether you're getting stronger.
+                Many trackers let you log for free and charge for extra routines, older history or progress charts.
               </p>
               <p>
-                Here nothing is capped and nothing is a teaser. Every set you log stays, and every screen works the same on
-                day one as on day five hundred.
+                Setstamp has no paid tier. There are no limits on routines or history, and every feature is available
+                from the start.
               </p>
             </div>
           </div>
@@ -131,23 +128,23 @@ export default function Landing() {
         <section className="lp-band lp-steel" aria-labelledby="lp-what">
           <div className="lp-wrap">
             <h2 id="lp-what" className="lp-h2 display">
-              What's in it
+              What's included
             </h2>
             <dl className="lp-spec">
               <Spec icon={<IconCloudOff />} term="Works offline">
-                Every set saves to your phone first and syncs when you're back on signal. A basement gym with no bars is fine.
+                Sets save to your phone first and sync when you're back online, so logging works with no signal.
               </Spec>
-              <Spec icon={<IconDumbbell />} term="One-thumb logging">
-                Stamped numbers you can read at arm's length, big plus and minus keys, and the next action low on the screen.
+              <Spec icon={<IconDumbbell />} term="One-handed logging">
+                Large numbers you can read at arm's length, big plus and minus buttons, and the main button near the bottom of the screen.
               </Spec>
               <Spec icon={<IconSearch />} term="1,383 exercises">
-                Searched on the device, so it's instant, and forgiving of typos and gym nicknames. Add your own when one's missing.
+                Search runs on your phone, so results are instant, and it handles typos and common nicknames. You can add your own exercises.
               </Spec>
               <Spec icon={<IconProgram />} term="Programs">
                 Upper/lower, push/pull/legs and full-body templates, or build your own day by day.
               </Spec>
               <Spec icon={<IconProgress />} term="Body-map coverage">
-                See which muscles got work this week, as estimated sets per muscle. A training picture, not a diagnosis.
+                See which muscles you trained this week as estimated sets per muscle. It's an estimate, not a diagnosis.
               </Spec>
               <Spec icon={<IconDownload />} term="Your data">
                 Export everything as JSON or CSV. Delete your account and your data goes with it.
@@ -180,11 +177,11 @@ export default function Landing() {
         <section className="lp-band lp-plate" aria-labelledby="lp-install">
           <div className="lp-wrap lp-final">
             <h2 id="lp-install" className="lp-h2 display">
-              No app store. Just your home screen.
+              Install it on your phone
             </h2>
             <p className="lp-final__lede">
-              Create an account here, then add Setstamp to your home screen from your browser. It opens full screen from its own
-              icon and keeps working without signal. On iPhone you'll sign in once more inside the home-screen app.
+              Create an account here, then add Setstamp to your home screen from your browser. No app store needed. It opens
+              full screen from its own icon and works without signal. On iPhone you'll sign in once more inside the home-screen app.
             </p>
             <div className="lp-actions">
               <CtaPrimary>Create free account</CtaPrimary>

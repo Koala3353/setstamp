@@ -190,7 +190,7 @@ export function ProgramOverview({
       </Section>
 
       {notes.length > 0 && (
-        <Section title="Balance notes" id="prog-balance" meta="Rule-based observations about the planned week. Information, not instructions.">
+        <Section title="Balance notes" id="prog-balance" meta="Automatic notes about the planned week, for information only.">
           <ul className="prog-notes">
             {notes.map((n) => (
               <li key={n.id} className={`prog-note prog-note--${n.kind}`}>

@@ -187,7 +187,7 @@ export function TodayScreen() {
           </ListGroup>
         ) : (
           <EmptyState icon={<IconHistory />} title="Nothing logged yet">
-            <p>Your last sessions show here, so you know what to beat.</p>
+            <p>Your recent workouts will show here.</p>
           </EmptyState>
         )}
       </Section>
