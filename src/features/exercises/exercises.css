@@ -468,3 +468,28 @@
 .excredits__note {
   color: var(--ink-3);
 }
+
+/* How to: muscles and equipment at a glance, then the steps. */
+.exdetail__brief {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--s-1) var(--s-4);
+  margin: 0;
+  font-size: var(--fs-sm);
+}
+.exdetail__brief dt {
+  color: var(--ink-2);
+  font-weight: 620;
+}
+.exdetail__brief dd {
+  margin: 0;
+  font-weight: 560;
+}
+.exdetail__secondary {
+  color: var(--ink-2);
+  font-weight: 400;
+}
+.exdetail__nosteps {
+  margin: 0;
+  color: var(--ink-2);
+}

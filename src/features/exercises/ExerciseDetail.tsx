@@ -1,4 +1,4 @@
-// Exercise detail: images, body map, attributes, instructions, provenance, favorite, add-to-workout.
+// Exercise detail: photos, how-to steps, body map, attributes, provenance, favorite, add-to-workout.
 import { lazy, Suspense, useMemo, useState, type ComponentType } from "react";
 import { useActiveWorkout } from "../../app/activeWorkout";
 import { navigate, pathFor } from "../../app/router";
@@ -63,6 +63,7 @@ export function ExerciseDetail({ exId }: { exId: string }) {
   const images: ExerciseImage[] = (ex.catalog?.images ?? [])
     .filter((im) => im.source === "repdb" || settings.showCommunityImages)
     .sort((a, b) => (a.source === b.source ? 0 : a.source === "repdb" ? -1 : 1));
+  const steps = (ex.catalog?.instructions ?? []).map((t) => t.trim()).filter(Boolean);
   const fav = xs.favorites.has(ex.exId);
   const usual = isUsual(xs.usage, ex.exId);
   const inSession = session ? sessionExercises.some((r) => r.data?.sessionCid === session.cid && r.data.exId === ex.exId) : false;
@@ -139,6 +140,30 @@ export function ExerciseDetail({ exId }: { exId: string }) {
         </div>
       )}
 
+      <section className="exdetail__section" aria-labelledby="exdetail-howto">
+        <SectionHeader level={3} id="exdetail-howto" title="How to" />
+        <dl className="exdetail__brief">
+          <dt>Muscles</dt>
+          <dd>
+            {muscleList(ex.primary) || "Not listed"}
+            {ex.secondary.length > 0 && <span className="exdetail__secondary"> · also {muscleList(ex.secondary).toLowerCase()}</span>}
+          </dd>
+          <dt>Equipment</dt>
+          <dd>{equipmentList(ex.equipment)}</dd>
+        </dl>
+        {steps.length > 0 ? (
+          <ol className="exdetail__steps">
+            {steps.map((s, i) => (
+              <li key={i}>{s}</li>
+            ))}
+          </ol>
+        ) : (
+          <p className="exdetail__nosteps">No written steps for this exercise</p>
+        )}
+        {ex.notes && <p className="exdetail__notes">{ex.notes}</p>}
+      </section>
+
+
       <section className="exdetail__section" aria-labelledby="exdetail-muscles">
         <SectionHeader level={3} id="exdetail-muscles" title="Muscles worked" meta="Tap a muscle to highlight it" />
         <Card className="exdetail__mapcard">
@@ -151,21 +176,11 @@ export function ExerciseDetail({ exId }: { exId: string }) {
       <section className="exdetail__section" aria-labelledby="exdetail-details">
         <SectionHeader level={3} id="exdetail-details" title="Details" />
         <dl className="exdetail__facts">
-          <dt>Primary</dt>
-          <dd>{muscleList(ex.primary) || "—"}</dd>
-          {ex.secondary.length > 0 && (
-            <>
-              <dt>Secondary</dt>
-              <dd>{muscleList(ex.secondary)}</dd>
-            </>
-          )}
-          <dt>Equipment</dt>
-          <dd>{equipmentList(ex.equipment)}</dd>
           <dt>Movement</dt>
           <dd>{PATTERN_LABEL[ex.pattern]}</dd>
           <dt>Tracking</dt>
           <dd>
-            {TRACKING_LABEL[ex.tracking]}
+            {TRACKING_LABEL[ex.tracking] ?? ex.tracking}
             {ex.unilateral ? " · one side at a time" : ""}
           </dd>
         </dl>
@@ -178,18 +193,6 @@ export function ExerciseDetail({ exId }: { exId: string }) {
           </div>
         )}
       </section>
-
-      {(ex.catalog?.instructions.length ?? 0) > 0 && (
-        <section className="exdetail__section" aria-labelledby="exdetail-howto">
-          <SectionHeader level={3} id="exdetail-howto" title="How to" />
-          <ol className="exdetail__steps">
-            {ex.catalog!.instructions.map((s, i) => (
-              <li key={i}>{s}</li>
-            ))}
-          </ol>
-        </section>
-      )}
-      {ex.notes && <p className="exdetail__notes">{ex.notes}</p>}
 
       {ExerciseHistorySlot && (
         <Suspense fallback={null}>
