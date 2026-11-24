@@ -22,7 +22,11 @@ function spaFallback404(): Plugin {
     enforce: "post",
     generateBundle(_, bundle) {
       const index = bundle["index.html"];
-      if (index && index.type === "asset") this.emitFile({ type: "asset", fileName: "404.html", source: index.source });
+      if (!index || index.type !== "asset") return;
+      // Same shell, but kept out of search results so it never competes with the real landing page.
+      const html = typeof index.source === "string" ? index.source : new TextDecoder().decode(index.source);
+      const source = html.replace(/(<meta charset[^>]*>)/i, '$1\n    <meta name="robots" content="noindex" />');
+      this.emitFile({ type: "asset", fileName: "404.html", source });
     },
   };
 }

@@ -8,6 +8,7 @@
       name="description"
       content="A free lifting log that works offline. No limits on history or programs, 1,383 searchable exercises, muscle coverage charts and data export."
     />
+    <link rel="canonical" href="https://koala3353.github.io/setstamp/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Setstamp" />
     <meta property="og:title" content="Setstamp: a free lifting log that works offline" />
@@ -42,11 +43,102 @@
           if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
         } catch (e) {}
       })();
+      // The static page in #root is for crawlers and first paint on the landing only. Hide it when
+      // the visitor is headed into the app: installed launch, a hash route, an email link path, or
+      // a stored Convex Auth session (keys "__convexAuthJWT_<ns>" / "__convexAuthRefreshToken_<ns>").
+      (function () {
+        var app = false;
+        try {
+          if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone) app = true;
+          if (/[?&]source=pwa\b/.test(location.search)) app = true;
+          var h = location.hash.replace(/^#/, "");
+          if (h && h !== "/") app = true;
+          if (/\/auth\//.test(location.pathname)) app = true;
+          for (var i = 0; !app && i < localStorage.length; i++) {
+            if (/^__convexAuth(JWT|RefreshToken)_/.test(localStorage.key(i) || "")) app = true;
+          }
+        } catch (e) {}
+        if (app) document.documentElement.classList.add("boot-app");
+      })();
     </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Setstamp",
+        "url": "https://koala3353.github.io/setstamp/",
+        "description": "A free lifting log for your phone. It works offline, keeps your full history and has no subscription.",
+        "applicationCategory": "HealthApplication",
+        "operatingSystem": "Any (web, installable PWA)",
+        "browserRequirements": "Requires JavaScript",
+        "image": "https://koala3353.github.io/setstamp/og.png",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
+    <style>
+      .seo-static { min-height: 100dvh; padding: 32px 16px 48px; background: #ebe9e6; color: #181613;
+        font: 16px/1.5 Archivo, system-ui, sans-serif; }
+      .seo-static__in { max-width: 40rem; margin: 0 auto; }
+      .seo-static h1 { font-size: 2rem; line-height: 1.1; margin: 24px 0 12px; }
+      .seo-static h2 { font-size: 1.25rem; margin: 32px 0 8px; }
+      .seo-static a { color: #0e5caf; }
+      .seo-static li { margin: 6px 0; }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) .seo-static { background: #12100e; color: #f6f3ed; }
+        :root:not([data-theme="light"]) .seo-static a { color: #8fbfff; }
+      }
+      :root[data-theme="dark"] .seo-static { background: #12100e; color: #f6f3ed; }
+      :root[data-theme="dark"] .seo-static a { color: #8fbfff; }
+      .boot-app .seo-static { display: none; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <noscript>Setstamp needs JavaScript to run.</noscript>
+    <div id="root">
+      <!-- Static copy of the landing page for crawlers and no-JS visitors. React replaces it on mount. -->
+      <div class="seo-static">
+        <div class="seo-static__in">
+          <header><strong>Setstamp</strong> · <a href="#/signin">Sign in</a></header>
+          <main>
+            <h1>A free lifting log that works offline</h1>
+            <p>
+              Log weight and reps with one hand between sets. It works without signal, keeps your full history, and has no
+              subscription.
+            </p>
+            <p><a href="#/signup">Create free account</a> or <a href="#/signin">sign in</a>.</p>
+            <p>Free, with no limits on history, programs or exercises. You can export or delete your data any time.</p>
+
+            <h2>How it works</h2>
+            <ol>
+              <li>Open: Today shows the next day of your program. A missed session stays next in line.</li>
+              <li>Log: weight and reps are prefilled from last time. Tap Log set and the rest timer starts.</li>
+              <li>See progress: personal records, estimated 1RM and weekly sets per muscle.</li>
+            </ol>
+
+            <h2>What's included</h2>
+            <ul>
+              <li>Works offline. Sets save to your phone first and sync when you're back online.</li>
+              <li>One-handed logging with large numbers and big plus and minus buttons.</li>
+              <li>1,383 exercises with on-device search that handles typos and nicknames. You can add your own.</li>
+              <li>Programs: upper/lower, push/pull/legs and full-body templates, or build your own.</li>
+              <li>Body-map coverage: estimated weekly sets per muscle.</li>
+              <li>Your data: export everything as JSON or CSV, or delete your account and its data.</li>
+            </ul>
+
+            <h2>Install it on your phone</h2>
+            <p>
+              Create an account, then add Setstamp to your home screen from your browser. No app store needed. It opens full
+              screen from its own icon and works without signal.
+            </p>
+          </main>
+          <footer>
+            <p>Exercise data by <a href="https://repdb.co">RepDB (repdb.co)</a>. Base catalog from
+              <a href="https://github.com/yuhonas/free-exercise-db">free-exercise-db</a>, released under the Unlicense.</p>
+            <p><a href="privacy.html">Privacy</a></p>
+          </footer>
+        </div>
+      </div>
+    </div>
+    <noscript><p style="text-align:center">Setstamp needs JavaScript to run.</p></noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

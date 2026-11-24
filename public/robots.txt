@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://koala3353.github.io/setstamp/sitemap.xml
