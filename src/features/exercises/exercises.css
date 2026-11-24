@@ -1,0 +1,470 @@
+/* Exercises feature. Tokens only (src/styles/tokens.css); flat, seams not shadows. */
+
+/* ---------- Browser ---------- */
+.exbrowser {
+  display: grid;
+  gap: var(--s-5);
+}
+.exbrowser__top {
+  display: grid;
+  gap: var(--s-3);
+}
+/* Exercises tab: search + filters dock under the stencil header, so a thumb never has to scroll
+   back up to refine. Same powder-coat ground as the header, closed off by one seam. */
+.exbrowser--navigate .exbrowser__top {
+  position: sticky;
+  top: calc(64px + env(safe-area-inset-top));
+  z-index: 5;
+  margin: calc(var(--s-2) * -1) calc(var(--gutter) * -1) 0;
+  padding: var(--s-2) var(--gutter) var(--s-3);
+  background: var(--bg) var(--grain);
+  background-size: 160px 160px;
+  border-bottom: 1px solid var(--seam);
+}
+/* Inside the picker sheet the search + filters stay pinned while results scroll. */
+.expicker .exbrowser__top {
+  position: sticky;
+  top: calc(var(--s-4) * -1);
+  z-index: 1;
+  margin: calc(var(--s-4) * -1) calc(var(--s-4) * -1) 0;
+  padding: var(--s-4);
+  background: var(--bg);
+  border-bottom: 1px solid var(--seam);
+}
+.expicker .ui-sheet__panel {
+  height: calc(100dvh - 48px);
+}
+.exfilters {
+  display: grid;
+  gap: var(--s-2);
+}
+/* The facet whose options are showing: an ink edge ties it to the option row below. */
+.exfilters .ui-fchip.is-open {
+  border-color: var(--ink);
+  box-shadow: inset 0 -3px 0 var(--ink);
+}
+.exfilters .ui-chiprow + .ui-chiprow {
+  padding-top: var(--s-2);
+  border-top: 1px dashed var(--seam-strong);
+}
+.exbrowser__interp {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+}
+.exbrowser__suggest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.exbrowser__credit {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: var(--fs-label);
+}
+.exbrowser__credit a {
+  color: var(--ink-2);
+  text-underline-offset: 3px;
+}
+
+/* ---------- Sections + rows ---------- */
+.exsection {
+  display: grid;
+  gap: var(--s-2);
+}
+.exsection .ui-sechead__meta {
+  font-variant-numeric: tabular-nums;
+}
+/* Ghost "Custom" sits on the section header's baseline; pull its padding to the gutter edge. */
+.exsection__new {
+  margin-right: calc(var(--s-3) * -1);
+}
+.exlist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  overflow: hidden;
+}
+.exlist > li + li {
+  border-top: 1px solid var(--seam);
+}
+.exrow {
+  display: flex;
+  align-items: stretch;
+}
+.exrow__main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 68px;
+  padding: var(--s-2) var(--s-1) var(--s-2) var(--s-2);
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  text-decoration: none;
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--dur-fast) ease;
+}
+.exrow__main:active {
+  background: var(--raised);
+}
+@media (hover: hover) and (pointer: fine) {
+  .exrow__main:hover {
+    background: color-mix(in oklch, var(--raised) 60%, var(--surface));
+  }
+}
+.exrow__main:focus-visible,
+.exrow__star:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+/* Body-map thumbnail on a raised station plate. */
+.exrow__map {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-sm);
+  background: var(--raised);
+}
+.exrow__map .bm-mini {
+  height: 46px;
+}
+.exrow__text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+.exrow__name {
+  font-size: var(--fs-body);
+  font-weight: 650;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.exrow__meta {
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+  line-height: 1.3;
+}
+.exrow__tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-1) var(--s-2);
+  margin-top: 2px;
+  font-size: var(--fs-sm);
+}
+.exrow__why {
+  color: var(--ink-2);
+}
+.exrow__check {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  margin-right: var(--s-2);
+  border: 2px solid var(--seam-strong);
+  border-radius: var(--r-xs);
+  transition:
+    background-color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease;
+}
+.exrow__check.is-on {
+  border-color: var(--inverse);
+  background: var(--inverse);
+  color: var(--ink-on-inverse);
+}
+.exrow__star {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  min-height: var(--hit-min);
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.exrow__star svg {
+  transition: transform var(--dur-press) var(--ease-out);
+}
+.exrow__star:active svg {
+  transform: scale(0.85);
+}
+.exrow__star.is-on {
+  color: var(--ink);
+}
+
+/* Stencilled tags: "Your usual" (measured) is a filled plate; "Staple" (curated) a quiet outline. */
+.exmark {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 6px;
+  border: 1px solid var(--seam-strong);
+  border-radius: var(--r-xs);
+  font-size: var(--fs-label);
+  font-weight: 640;
+  line-height: 1;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.exmark--usual {
+  border-color: transparent;
+  background: var(--raised);
+  color: var(--ink);
+}
+
+/* ---------- Detail ---------- */
+.exdetail {
+  display: grid;
+  gap: var(--section-gap);
+}
+.exdetail__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+}
+.exdetail__titles {
+  display: grid;
+  flex: 1;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.exdetail__name {
+  margin: 0;
+  font-size: var(--num-l);
+  font-weight: 760;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.exdetail__sub {
+  margin: 0;
+  color: var(--ink-2);
+}
+.exdetail__marks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.exdetail__fav {
+  flex: none;
+  color: var(--ink-2);
+}
+.exdetail__fav.is-on {
+  background: var(--inverse);
+  color: var(--ink-on-inverse);
+}
+.exdetail__note {
+  margin: 0;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--raised);
+  font-size: var(--fs-sm);
+  color: var(--ink);
+}
+.exdetail__images {
+  display: flex;
+  gap: var(--s-3);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  margin: 0 calc(var(--gutter) * -1);
+  padding: 0 var(--gutter);
+  /* Without this, snap-align start pulls the first image flush to the screen edge. */
+  scroll-padding-inline: var(--gutter);
+  scrollbar-width: none;
+}
+.exdetail__images::-webkit-scrollbar {
+  display: none;
+}
+.exdetail__figure {
+  flex: none;
+  width: min(80%, 320px);
+  margin: 0;
+  scroll-snap-align: start;
+}
+.exdetail__figure:only-child {
+  width: 100%;
+}
+.exdetail__figure img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+.exdetail__figure figcaption {
+  margin-top: var(--s-1);
+  font-size: var(--fs-label);
+  color: var(--ink-3);
+}
+.exdetail__section {
+  display: grid;
+  gap: var(--s-3);
+}
+.exdetail__mapcard {
+  display: grid;
+  gap: var(--s-3);
+}
+.exdetail__map {
+  width: 100%;
+  max-height: 320px;
+}
+.exdetail__facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  margin: 0;
+  padding: 0 var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+.exdetail__facts dt,
+.exdetail__facts dd {
+  padding: var(--s-3) 0;
+  border-top: 1px solid var(--seam);
+}
+.exdetail__facts dt:first-of-type,
+.exdetail__facts dt:first-of-type + dd {
+  border-top: 0;
+}
+.exdetail__facts dt {
+  padding-right: var(--s-4);
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  font-weight: 620;
+}
+.exdetail__facts dd {
+  margin: 0;
+  font-weight: 560;
+}
+.exdetail__aliases {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+}
+.exdetail__label {
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+}
+/* Steps carry stamped station numbers, like the program queue. */
+.exdetail__steps {
+  display: grid;
+  gap: var(--s-3);
+  margin: 0;
+  padding: 0;
+  max-width: 60ch;
+  list-style: none;
+  counter-reset: step;
+}
+.exdetail__steps li {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: var(--s-3);
+  align-items: start;
+  counter-increment: step;
+}
+.exdetail__steps li::before {
+  content: counter(step);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid var(--seam-strong);
+  border-radius: var(--r-xs);
+  color: var(--ink-2);
+  font-size: var(--fs-label);
+  font-weight: var(--num-weight);
+  font-stretch: var(--num-stretch);
+  font-variant-numeric: tabular-nums;
+}
+.exdetail__notes {
+  margin: 0;
+  max-width: 60ch;
+}
+.exdetail__provenance {
+  margin: 0;
+  font-size: var(--fs-label);
+  color: var(--ink-3);
+}
+
+/* ---------- Custom form ---------- */
+.exform {
+  display: grid;
+  gap: var(--s-6);
+}
+.exform__field {
+  display: grid;
+  gap: var(--s-3);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.exform__label {
+  padding: 0;
+  margin-bottom: var(--s-1);
+  font-size: var(--fs-body);
+  font-weight: 720;
+  color: var(--ink);
+}
+.exform__hint,
+.exform__sublabel {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+}
+.exform__sublabel {
+  font-size: var(--fs-label);
+  font-weight: 640;
+}
+.exform__dups {
+  display: grid;
+  gap: var(--s-2);
+  margin-top: calc(var(--s-4) * -1);
+}
+.exform__map {
+  width: 100%;
+  max-height: 300px;
+}
+.exform__error {
+  margin: 0;
+  color: var(--danger);
+  font-size: var(--fs-sm);
+  font-weight: 640;
+}
+
+/* ---------- Credits ---------- */
+.excredits {
+  display: grid;
+  gap: var(--s-2);
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+}
+.excredits p {
+  margin: 0;
+  max-width: 60ch;
+}
+.excredits a {
+  color: var(--ink);
+  text-underline-offset: 3px;
+}
+.excredits__note {
+  color: var(--ink-3);
+}

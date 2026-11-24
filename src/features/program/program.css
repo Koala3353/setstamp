@@ -1,0 +1,181 @@
+/* Program: rolling queue, day list, day editor, slot sheet. Tokens from src/styles/tokens.css. */
+
+.prog-back {
+  margin: calc(var(--s-2) * -1) 0 calc(var(--s-4) - var(--section-gap)) calc(-1 * var(--s-3));
+}
+.prog-name .ui-field__input {
+  font-size: var(--fs-title);
+  font-weight: 700;
+}
+.prog-estimate {
+  display: grid;
+  gap: var(--s-3);
+}
+.prog-estimate p {
+  margin: 0;
+  max-width: 60ch;
+}
+
+/* ---------- Next up: station plate + start ---------- */
+.prog-next {
+  display: grid;
+  gap: var(--s-3);
+}
+.prog-next p {
+  margin: 0;
+}
+.prog-next__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-bottom: var(--s-1);
+}
+/* The day's station number, sprayed on an ink plate like the rack it belongs to. */
+.prog-next__station {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-sm);
+  background: var(--inverse);
+  color: var(--ink-on-inverse);
+  font-size: var(--num-l);
+}
+.prog-next__title {
+  font-size: var(--num-l);
+  font-weight: 760;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+.prog-next__meta {
+  margin-top: 2px;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+.prog-next__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+}
+.prog-next__then {
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--seam);
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+
+/* ---------- Day and slot lists ---------- */
+.prog-slot {
+  display: flex;
+  align-items: center;
+}
+.prog-slot > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+.prog-slot__order {
+  display: flex;
+  flex: none;
+  padding-right: var(--s-1);
+}
+.prog-station {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-xs);
+  box-shadow: inset 0 0 0 1.5px var(--seam-strong);
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+.prog-station.is-next {
+  background: var(--inverse);
+  box-shadow: none;
+  color: var(--ink-on-inverse);
+}
+.prog-list .ui-row__leading {
+  width: 32px;
+  height: 32px;
+}
+.prog-list .ui-row {
+  padding-right: var(--s-2);
+}
+.prog-next__busy {
+  padding: var(--s-3);
+  border-radius: var(--r-sm);
+  background: var(--raised);
+  font-size: var(--fs-sm);
+}
+
+/* ---------- Balance notes ---------- */
+.prog-notes {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  overflow: hidden;
+}
+.prog-note {
+  position: relative;
+  padding: var(--s-3) var(--s-4) var(--s-3) calc(var(--s-4) + 14px);
+  max-width: 100%;
+  line-height: 1.4;
+}
+.prog-note + .prog-note {
+  border-top: 1px solid var(--seam);
+}
+/* A small square marker instead of a coloured stripe: amber for things worth a look, grey for info. */
+.prog-note::before {
+  content: "";
+  position: absolute;
+  left: var(--s-4);
+  top: calc(var(--s-3) + 0.5em);
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-xs);
+  background: var(--warn);
+}
+.prog-note--info::before {
+  background: var(--ink-3);
+}
+
+/* ---------- Slot sheet form ---------- */
+.prog-form {
+  display: grid;
+  gap: var(--s-4);
+}
+.prog-form__pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+}
+/* Two steppers side by side: 56px keys left ~22px for the number at 375px, clipping "10" to "1". */
+.prog-form__pair .ui-stepper__row {
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  gap: var(--s-1);
+}
+.prog-form__pair .ui-stepper__field {
+  padding: 0 2px;
+}
+.prog-form__pair .ui-stepper__input {
+  font-size: var(--num-l);
+}
+.prog-form__group {
+  display: grid;
+  gap: var(--s-2);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--seam);
+}
+.prog-form__group p {
+  margin: 0;
+}
+.prog-form__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--seam);
+}

@@ -1,0 +1,22 @@
+/* Session UI: account rows in Settings, the sync problems sheet. */
+
+/* Initial on an ink plate: who is signed in, at a glance. */
+.acct-plate {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-sm);
+  background: var(--inverse);
+  color: var(--ink-on-inverse);
+  font-size: var(--fs-body);
+  font-weight: var(--num-weight);
+  font-stretch: var(--num-stretch);
+}
+.acct-problem .ui-row__leading {
+  color: var(--danger);
+}
+.syncissue__actions {
+  display: flex;
+  gap: var(--s-2);
+}

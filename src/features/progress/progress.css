@@ -1,0 +1,385 @@
+/* Progress: history, records, trend chart. Station Stencil: record blue marks records only. */
+
+.progress__help {
+  justify-self: start;
+  /* Optically align the label with the gutter; the hit area still extends past it. */
+  margin-left: calc(var(--s-3) * -1);
+  color: var(--ink-2);
+}
+.progress__back {
+  justify-self: start;
+  margin-left: calc(var(--s-3) * -1);
+  margin-bottom: calc(var(--s-2) * -1);
+}
+/* Detail title (session or exercise): stamped Archivo, a step under the stencil screen title. */
+.progress__title {
+  margin: 0;
+  font-size: var(--num-l);
+  font-weight: 760;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- This week ---------- */
+.week {
+  display: grid;
+  gap: var(--s-4);
+}
+/* Three small counts read best side by side on a phone. */
+.week__stats,
+.sessiondetail__stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.sessiondetail__stats .ui-stat__value {
+  font-size: var(--fs-title);
+  overflow-wrap: anywhere;
+}
+.week__link {
+  justify-self: start;
+  margin: calc(var(--s-2) * -1) 0 calc(var(--s-2) * -1) calc(var(--s-3) * -1);
+  color: var(--ink-2);
+}
+.weekmap {
+  display: grid;
+  gap: var(--s-3);
+}
+
+/* Stamped date plate leading each finished workout. */
+.dateplate {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-sm);
+  background: var(--raised);
+  line-height: 1;
+}
+.dateplate__day {
+  font-size: var(--fs-title);
+}
+.dateplate__mon {
+  color: var(--ink-2);
+  font-size: var(--fs-label);
+  font-weight: 640;
+}
+
+/* ---------- Exercise history ---------- */
+.exhist {
+  display: grid;
+  gap: var(--section-gap);
+}
+.exhist__block {
+  display: grid;
+  gap: var(--s-3);
+}
+.exhist__sessions,
+.sessiondetail__list {
+  display: grid;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.exhist__session,
+.sessiondetail__ex {
+  display: grid;
+  gap: var(--s-1);
+  padding: var(--s-1) var(--s-4) var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+.exhist__sessionhead,
+.sessiondetail__exname {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--hit-action);
+  color: var(--ink);
+  font-weight: 680;
+  text-decoration: none;
+}
+.exhist__date {
+  flex: none;
+}
+.exhist__name {
+  flex: 1;
+  min-width: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sessiondetail__exname > span {
+  flex: 1;
+  min-width: 0;
+}
+.exhist__chev {
+  flex: none;
+  margin-left: auto;
+  color: var(--ink-3);
+}
+@media (hover: hover) and (pointer: fine) {
+  .exhist__sessionhead:hover .exhist__date,
+  .sessiondetail__exname:hover > span {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+/* ---------- Records ---------- */
+.prs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.prs__card {
+  position: relative;
+  padding: var(--s-4) var(--s-3) var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+/* A short record-blue marking strip on the top edge, like a painted station mark. */
+.prs__card::before,
+.prlist__card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: var(--s-3);
+  width: 28px;
+  height: 3px;
+  background: var(--record);
+}
+.prs__card .ui-stat__value {
+  flex-wrap: wrap;
+  overflow-wrap: anywhere;
+}
+
+.prlist__card {
+  position: relative;
+}
+.prlist__card::before {
+  left: var(--s-4);
+}
+.prlist {
+  display: grid;
+  margin: 0;
+  padding: var(--s-1) var(--s-4);
+  list-style: none;
+}
+.prlist li {
+  display: grid;
+  gap: 2px;
+  padding: var(--s-3) 0;
+}
+.prlist li + li {
+  border-top: 1px solid var(--seam);
+}
+.prlist__ex {
+  font-weight: 680;
+}
+.prlist__what {
+  color: var(--record);
+  font-size: var(--fs-sm);
+  font-weight: 640;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Set list ---------- */
+.setlist {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.setlist__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--seam);
+}
+.setlist__row--warm {
+  color: var(--ink-2);
+}
+.setlist__kind {
+  flex: none;
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+}
+.setlist__val {
+  font-size: var(--fs-body);
+  text-align: right;
+}
+
+/* ---------- Trend chart ---------- */
+.trend {
+  display: grid;
+  gap: var(--s-2);
+  margin: 0;
+  padding: var(--s-4) var(--s-3) var(--s-2);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+.trend__readout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--s-2);
+  margin: 0 var(--s-1);
+}
+.trend__value {
+  font-size: var(--num-l);
+  line-height: 1;
+}
+.trend__when {
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+.trend__best {
+  color: var(--record);
+  font-weight: 640;
+}
+.trend__svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  touch-action: manipulation;
+}
+.trend__grid {
+  stroke: var(--seam);
+  stroke-width: 1;
+}
+.trend__guide {
+  stroke: var(--seam-strong);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.trend__tick {
+  fill: var(--ink-2);
+  font-size: var(--fs-label);
+  font-weight: 620;
+  font-stretch: var(--num-stretch);
+  font-variant-numeric: tabular-nums;
+}
+.trend__pt {
+  fill: var(--ink-2);
+  transition: r var(--dur-fast) var(--ease-out);
+}
+.trend__pt.is-sel {
+  fill: var(--ink);
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+.trend__pt--best,
+.trend__pt--best.is-sel {
+  fill: var(--record);
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+.trend__hit {
+  fill: transparent;
+  cursor: pointer;
+}
+.trend__caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0 var(--s-1);
+  font-size: var(--fs-label);
+  color: var(--ink-2);
+}
+.trend__key {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--record);
+}
+.trend__table {
+  margin: 0 var(--s-1);
+}
+.trend__table summary {
+  min-height: var(--hit-min);
+  display: flex;
+  align-items: center;
+  font-size: var(--fs-sm);
+  font-weight: 640;
+  cursor: pointer;
+}
+.trend__table table {
+  width: 100%;
+  margin-bottom: var(--s-2);
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+}
+.trend__table th,
+.trend__table td {
+  padding: 6px 0;
+  border-top: 1px solid var(--seam);
+  text-align: left;
+}
+.trend__table th:last-child,
+.trend__table td:last-child {
+  text-align: right;
+}
+
+/* ---------- Session detail ---------- */
+.sessiondetail__head {
+  display: grid;
+  gap: var(--s-1);
+}
+.sessiondetail__prs {
+  display: grid;
+  gap: var(--s-3);
+}
+.sessiondetail__notes {
+  margin: 0;
+  color: var(--ink-2);
+  white-space: pre-wrap;
+}
+.exprogress__head {
+  display: grid;
+  gap: var(--s-1);
+}
+.exprogress__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--hit-min);
+  justify-self: start;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  font-weight: 640;
+  text-underline-offset: 3px;
+}
+
+/* ---------- Definitions ---------- */
+.defs {
+  display: grid;
+  gap: var(--s-4);
+  margin: 0;
+}
+.defs__item dt {
+  font-weight: 680;
+}
+.defs__item dd {
+  margin: 2px 0 0;
+  color: var(--ink-2);
+  max-width: 60ch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trend__pt {
+    transition: none;
+  }
+}

@@ -1,0 +1,52 @@
+/* Coverage panel: view switch, body map, legend, muscle chips, fine print. Sits inside a Card. */
+.cov {
+  display: grid;
+  gap: var(--s-3);
+}
+.cov .bm-root:not(.bm-mini) {
+  width: 100%;
+  max-height: 360px;
+  margin-block: var(--s-1);
+}
+.cov__caption,
+.cov__empty {
+  margin: 0;
+  max-width: 60ch;
+}
+.cov .bm-legend {
+  margin: 0;
+}
+/* The panel states the estimate rule in full below; the legend's short copy would repeat it. */
+.cov .bm-legend .bm-note {
+  display: none;
+}
+.cov .bm-chips {
+  margin: 0;
+}
+.cov__fine {
+  display: grid;
+  gap: var(--s-1);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--seam);
+}
+.cov__fine p {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--ink-2);
+  font-size: var(--fs-label);
+  line-height: 1.4;
+}
+
+.cov-sheet__group {
+  display: grid;
+  gap: var(--s-2);
+  margin-bottom: var(--s-5);
+}
+.cov-sheet__title {
+  margin: 0;
+  font-size: var(--fs-body);
+  font-weight: 700;
+}
+.cov-sheet__group p {
+  margin: 0;
+}

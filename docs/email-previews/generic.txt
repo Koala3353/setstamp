@@ -1,0 +1,14 @@
+Subject: Something about your account
+
+SETSTAMP
+
+This is a message that has no template of its own.
+
+Open it here:
+
+https://setstamp.example/somewhere?x=1
+
+--
+You got this because someone used this address on Setstamp. If it wasn't you, ignore this email.
+
+Setstamp. Stamp the set. Keep it for good.

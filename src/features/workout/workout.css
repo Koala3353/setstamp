@@ -1,0 +1,600 @@
+/* Workout logging + Today. "Station Stencil": flat steel plates, stamped numerals, one orange per
+   region (the next set's ✓, or the docked start/finish), green for done, blue only for records.
+   Tokens from src/styles/tokens.css. */
+
+/* ---------- Session status: elapsed + overall progress ---------- */
+.wk-status {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: end;
+  gap: var(--s-4);
+  padding-bottom: var(--s-1);
+}
+.wk-progress {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+  min-width: 0;
+  padding-bottom: 3px;
+}
+.wk-progress__text {
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  font-weight: 560;
+  white-space: nowrap;
+}
+.wk-progress__text .num {
+  color: var(--ink);
+  font-size: var(--fs-body);
+}
+.wk-progress__track {
+  display: block;
+  width: 100%;
+  max-width: 160px;
+  height: 6px;
+  overflow: hidden;
+  border-radius: var(--r-xs);
+  background: var(--raised);
+}
+.wk-progress__track span {
+  display: block;
+  height: 100%;
+  background: var(--ok);
+  transform-origin: left center;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+/* ---------- Exercise plate ---------- */
+.screen.wk {
+  gap: var(--s-4);
+}
+.wk-card {
+  display: grid;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-3) var(--s-1);
+  background: var(--surface);
+  border-radius: var(--r-md);
+}
+.wk-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  margin-right: calc(var(--s-2) * -1);
+}
+.wk-card__titles {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  padding-top: 9px;
+}
+.wk-card__name {
+  margin: 0;
+  font-size: var(--fs-title);
+  font-weight: 720;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.wk-card__swap {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+/* Station-plate count: 2/4 working sets. Turns into an ink plate when the lift is finished. */
+.wk-card__count {
+  flex: none;
+  margin-top: 8px;
+  padding: 3px 8px;
+  border-radius: var(--r-xs);
+  background: var(--raised);
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  line-height: 1.2;
+}
+.wk-card.is-complete .wk-card__count {
+  background: var(--inverse);
+  color: var(--ink-on-inverse);
+}
+
+/* Last time / target: the two numbers a lifter reads before a set, side by side. */
+.wk-card__facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--s-2) var(--s-4);
+  margin: 0;
+  padding: var(--s-2) 0;
+  border-block: 1px solid var(--seam);
+}
+.wk-card__facts div {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.wk-card__facts dt {
+  color: var(--ink-2);
+  font-size: var(--fs-label);
+  font-weight: 600;
+}
+.wk-card__facts dd {
+  margin: 0;
+  font-size: var(--fs-body);
+  line-height: 1.3;
+}
+
+/* Progression hint: a quiet raised strip, the rule one tap away. */
+.wk-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  min-height: var(--hit-min);
+  padding: 0 var(--s-3);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--raised);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform var(--dur-press) var(--ease-out), background-color var(--dur-fast) ease;
+}
+.wk-hint:active {
+  transform: scale(0.98);
+  background: var(--raised-press);
+}
+.wk-hint__why {
+  flex: none;
+  color: var(--ink-2);
+  font-weight: 560;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.wk-card__rule,
+.wk-card__note {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  max-width: 60ch;
+}
+.wk-card__rule {
+  margin-top: calc(var(--s-2) * -1);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-sm);
+  box-shadow: inset 0 0 0 1px var(--seam);
+}
+.wk-card__rulename {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--fs-label);
+}
+.wk-card__note {
+  font-style: italic;
+}
+.wk-card__add {
+  justify-self: start;
+  margin-left: calc(var(--s-2) * -1);
+}
+
+/* ---------- Set rows: badge · values (tap to edit) · ✓ (tap to log) ---------- */
+.wk-sets {
+  display: grid;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.wk-set {
+  display: grid;
+  grid-template-columns: 28px 1fr 64px;
+  align-items: center;
+  gap: var(--s-2);
+}
+.wk-set__badge {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-xs);
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  box-shadow: inset 0 0 0 1.5px var(--seam-strong);
+}
+.wk-set.is-warm .wk-set__badge {
+  box-shadow: none;
+  outline: 1.5px dashed var(--seam-strong);
+  outline-offset: -1.5px;
+}
+.wk-set.is-next .wk-set__badge {
+  background: var(--inverse);
+  color: var(--ink-on-inverse);
+  box-shadow: none;
+}
+.wk-set.is-done .wk-set__badge {
+  box-shadow: none;
+  color: var(--ink-3);
+}
+.wk-set__values {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  align-content: center;
+  gap: 2px var(--s-2);
+  min-height: 60px;
+  padding: var(--s-2) var(--s-3);
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--raised);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform var(--dur-press) var(--ease-out), background-color var(--dur-fast) ease;
+}
+.wk-set__values:active {
+  transform: scale(0.98);
+  background: var(--raised-press);
+}
+.wk-set__val {
+  white-space: nowrap;
+}
+.wk-set__val .num {
+  font-size: var(--num-l);
+  line-height: 1;
+}
+.wk-set__val small {
+  margin-left: 3px;
+  color: var(--ink-2);
+  font-size: var(--fs-label);
+  font-weight: 620;
+}
+.wk-set__x {
+  color: var(--ink-3);
+  font-size: var(--fs-title);
+  line-height: 1;
+}
+.wk-set.is-warm .wk-set__val .num {
+  font-size: var(--fs-title);
+}
+.wk-set.is-done .wk-set__values {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--seam);
+}
+.wk-set.is-done .wk-set__val .num {
+  color: var(--ink-2);
+}
+
+.wk-set__check {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 60px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--seam-strong);
+  color: var(--ink-3);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform var(--dur-press) var(--ease-out), background-color var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+.wk-set__check:active {
+  transform: scale(0.94);
+}
+/* The next set: the screen's one orange control. */
+.wk-set.is-next .wk-set__check {
+  background: var(--action);
+  box-shadow: inset 0 0 0 1px var(--action-edge);
+  color: var(--action-ink);
+}
+.wk-set.is-next .wk-set__check:active {
+  background: var(--action-press);
+}
+.wk-set.is-done .wk-set__check {
+  background: var(--ok);
+  box-shadow: none;
+  color: var(--surface);
+}
+
+/* ---------- Set editor sheet ---------- */
+.wk-editor {
+  display: grid;
+  gap: var(--s-4);
+}
+.wk-plates {
+  margin: calc(var(--s-2) * -1) 0 0;
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-sm);
+  background: var(--raised);
+  font-size: var(--fs-sm);
+}
+.wk-plates__rem {
+  color: var(--warn);
+}
+
+/* ---------- Exercise menu sheet ---------- */
+.wk-menu {
+  display: grid;
+  gap: var(--s-4);
+}
+.wk-menu__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+}
+.wk-menu__remove {
+  margin-top: var(--s-2);
+}
+.wk-field {
+  display: grid;
+  gap: 6px;
+}
+.wk-field__label {
+  font-size: var(--fs-label);
+  font-weight: 640;
+  color: var(--ink-2);
+}
+.wk-field textarea,
+.wk-field input {
+  width: 100%;
+  min-height: 52px;
+  padding: var(--s-3);
+  border: 1.5px solid var(--seam-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-body);
+  resize: vertical;
+}
+.wk-field textarea::placeholder {
+  color: var(--ink-3);
+}
+.wk-field textarea:focus,
+.wk-field input:focus {
+  outline: none;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 1.5px var(--focus);
+}
+.wk-notes {
+  margin-top: var(--s-3);
+}
+.wk-discard.ui-btn {
+  justify-self: center;
+  color: var(--danger);
+}
+
+/* ---------- Dock: rest bar above the screen action ---------- */
+.wk-dock {
+  display: grid;
+  gap: var(--s-2);
+}
+/* An inverse plate: the one dark (or chalk) band on the screen, so the countdown is findable at a glance. */
+.wk-rest {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  min-height: 60px;
+  padding: var(--s-1) var(--s-1) var(--s-1) var(--s-3);
+  overflow: hidden;
+  border-radius: var(--r-md);
+  background: var(--inverse);
+  color: var(--ink-on-inverse);
+}
+.wk-rest__track {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 4px;
+  background: color-mix(in oklch, currentColor 16%, transparent);
+}
+.wk-rest__track span {
+  display: block;
+  height: 100%;
+  background: currentColor;
+  /* Scale, not width: the bar updates four times a second and width would re-lay out each time. */
+  transform-origin: left center;
+  transition: transform 250ms linear;
+}
+.wk-rest__icon {
+  flex: none;
+  opacity: 0.75;
+}
+.wk-rest__time {
+  margin-left: var(--s-1);
+  font-size: var(--num-l);
+  line-height: 1;
+}
+.wk-rest__label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  margin-left: var(--s-1);
+  font-size: var(--fs-label);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  opacity: 0.8;
+}
+/* At phone widths the label got squeezed to one letter ("B."); drop it and keep the controls. */
+@media (max-width: 420px) {
+  .wk-rest__label {
+    display: none;
+  }
+  .wk-rest__time {
+    margin-right: auto;
+  }
+}
+.wk-rest__btn {
+  min-width: 44px;
+  height: 44px;
+  padding: 0 var(--s-2);
+  border: 0;
+  border-radius: var(--r-sm);
+  /* Tinted from the bar's own ink so it reads on both the black and the chalk plate. */
+  background: color-mix(in oklch, currentColor 14%, transparent);
+  color: inherit;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+.wk-rest__btn:active {
+  transform: scale(0.95);
+  background: color-mix(in oklch, currentColor 26%, transparent);
+}
+.wk-rest__btn:focus-visible {
+  outline: 2px solid var(--ink-on-inverse);
+  outline-offset: 2px;
+}
+/* Muted: outlined instead of faded, so the word keeps full contrast. */
+.wk-rest__btn[aria-pressed="false"] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, currentColor 45%, transparent);
+}
+/* Skip is a solid ink-on-inverse key, not orange: the dock's orange belongs to Start/Finish/✓. */
+.wk-rest__btn--skip {
+  padding: 0 var(--s-3);
+  background: var(--ink-on-inverse);
+  color: var(--inverse);
+}
+.wk-rest__btn--skip:active {
+  background: color-mix(in oklch, var(--ink-on-inverse) 85%, var(--inverse));
+}
+
+/* ---------- Finish sheet ---------- */
+.wk-summary {
+  display: grid;
+  gap: var(--s-4);
+}
+.wk-summary__stats.ui-statgrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.wk-summary__prs {
+  display: grid;
+  gap: var(--s-2);
+}
+.wk-summary__prs-title {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0;
+  color: var(--record);
+  font-weight: 720;
+}
+.wk-summary__prs ul {
+  display: grid;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.wk-summary__prs li span {
+  display: block;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+.wk-summary p {
+  margin: 0;
+}
+
+/* ---------- Today ---------- */
+.td-live {
+  display: grid;
+  gap: var(--s-3);
+}
+.td-live__name {
+  margin: 0;
+  font-size: var(--fs-title);
+  font-weight: 720;
+}
+
+.td-next {
+  overflow: hidden;
+}
+.td-next__head {
+  display: grid;
+  gap: 2px;
+  padding: var(--s-4) var(--s-4) var(--s-3);
+}
+.td-next__name {
+  margin: 0;
+  font-size: var(--num-l);
+  font-weight: 760;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+.td-next__meta {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+.td-plan {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: td-plan;
+}
+.td-plan li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--s-3);
+  padding: 10px var(--s-4);
+  border-top: 1px solid var(--seam);
+}
+.td-plan__no {
+  color: var(--ink-3);
+  font-size: var(--fs-sm);
+}
+.td-plan__name {
+  font-weight: 560;
+  overflow-wrap: anywhere;
+}
+.td-plan__dose {
+  color: var(--ink-2);
+  font-size: var(--fs-body);
+  white-space: nowrap;
+}
+.td-plan__more {
+  padding: 10px var(--s-4) var(--s-3);
+  border-top: 1px solid var(--seam);
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+
+.td-alt {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--s-2);
+  margin-top: calc(var(--s-4) - var(--section-gap));
+}
+
+.td-recent__vol {
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wk-set__values,
+  .wk-set__check,
+  .wk-hint,
+  .wk-rest__btn,
+  .wk-progress__track span,
+  .wk-rest__track span {
+    transition: none;
+  }
+  .wk-set__values:active,
+  .wk-set__check:active,
+  .wk-hint:active,
+  .wk-rest__btn:active {
+    transform: none;
+  }
+}

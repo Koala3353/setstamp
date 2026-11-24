@@ -1,0 +1,106 @@
+/* Signed-out screens: sign in / create account (Welcome) and email-link pages. Operate mode:
+   compact, one column, thumb-reachable; the stencil wordmark is the only flourish. */
+.auth {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  padding: max(var(--s-4), env(safe-area-inset-top)) var(--gutter) max(var(--s-6), env(safe-area-inset-bottom));
+  background: transparent; /* the body's powder-coat grain shows through, like every screen */
+  color: var(--ink);
+}
+.auth__top {
+  grid-row: 1;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  translate: calc(-1 * var(--s-3)) 0; /* align the ghost button's text with the column */
+}
+.auth__card {
+  grid-row: 2;
+  align-self: center;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding-block: var(--s-5);
+}
+.auth__head {
+  display: grid;
+  gap: var(--s-2);
+  margin-bottom: var(--s-2);
+}
+/* The wordmark: sprayed through a stencil, like a station plate. */
+.auth__wordmark {
+  margin: 0;
+  line-height: 0;
+}
+.auth__wordmark svg {
+  height: clamp(40px, 12vw, 56px);
+  width: auto;
+}
+.auth__lede {
+  margin: 0;
+  max-width: 34ch;
+  color: var(--ink-2);
+}
+.auth__title {
+  margin: 0 0 var(--s-1);
+  font-size: var(--fs-headline);
+}
+.auth__subtitle {
+  margin: 0;
+  font-size: var(--fs-title);
+  font-weight: 720;
+}
+.auth__error {
+  margin: 0;
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--danger-wash);
+  color: var(--ink);
+  border: 1px solid var(--danger);
+}
+.auth__link {
+  justify-self: center;
+  min-height: 44px;
+  padding: 0 var(--s-3);
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.auth__or {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  color: var(--ink-3);
+  font-size: var(--fs-sm);
+}
+.auth__or::before,
+.auth__or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--seam);
+}
+.auth__note {
+  margin: 0;
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--seam);
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+.auth__working {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--ink-2);
+}
+.auth-splash {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+}

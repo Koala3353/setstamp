@@ -1,0 +1,17 @@
+Subject: Confirm your new email for Setstamp
+
+SETSTAMP
+
+Confirm new email
+
+Tap the button to make this the email address of your Setstamp account.
+
+Confirm new email:
+https://setstamp.example/auth/confirm-email-change?code=PREVIEW_Mn8bVc6xZl4kJh2gFd0sAp9oIu7yTr5e
+
+The link stops working after 1 hour and only works in the browser where you asked for the change.
+
+--
+You got this because someone used this address on Setstamp. If it wasn't you, ignore this email.
+
+Setstamp. Stamp the set. Keep it for good.

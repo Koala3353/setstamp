@@ -1,0 +1,18 @@
+{
+  "free-exercise-db": {
+    "commit": "f00c92c7dcf1216a928a52c3706c7ce8e2f71ed5",
+    "committedAt": "2026-09-27T02:26:41Z",
+    "file": "dist/exercises.json",
+    "repo": "yuhonas/free-exercise-db",
+    "resolvedAt": "2026-11-23T12:48:14.136Z",
+    "sha256": "5bb747e3fc658f095a60dcbf6d53c96627acdcc6ffb6fffde86f7e26995d40bf"
+  },
+  "repdb": {
+    "commit": "f12da458a90f353a86c953f204304d5a8bd98275",
+    "committedAt": "2026-11-15T13:27:17Z",
+    "file": "exercises.json",
+    "repo": "RepDB/exercise-dataset",
+    "resolvedAt": "2026-11-23T12:48:14.195Z",
+    "sha256": "ad7c602fcc6bd4322b6228673c0fff5ad60b87f219352d44f9b92a763835948f"
+  }
+}

@@ -1,0 +1,23 @@
+node_modules
+dist
+.env.local
+
+# Exercise catalog: generated files contain RepDB data, whose license forbids
+# republishing the dataset. Rebuild with: node --experimental-strip-types scripts/build-catalog.ts
+catalog/.cache/
+catalog/catalog.generated.json
+
+# Standard Vite/editor ignores
+dist-ssr
+*.local
+*.log
+.DS_Store
+
+# Local-only: secrets, agent state, scratch
+.env
+.env.*
+.claude/settings.local.json
+.quickstart*
+orchestrator-checkpoint.md
+.claude/scheduled_tasks.lock
+.impeccable/

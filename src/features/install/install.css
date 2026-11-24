@@ -1,0 +1,75 @@
+/* Install invitation (bottom sheet). */
+.inst-points {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--s-2);
+  color: var(--ink-2);
+}
+.inst-points li {
+  display: flex;
+  gap: var(--s-3);
+  align-items: baseline;
+}
+.inst-points li::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  translate: 0 -2px;
+  background: var(--ink);
+}
+
+.inst-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--s-4);
+}
+.inst-steps li {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: var(--s-3);
+  align-items: start;
+}
+/* Station number: a stamped plate, only because these are real steps in order. */
+.inst-steps__n {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-sm);
+  background: var(--inverse);
+  color: var(--ink-on-inverse);
+  font-size: var(--fs-title);
+  line-height: 1;
+}
+.inst-steps li > span:last-child {
+  padding-top: 6px;
+}
+.inst-glyph {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px 1px 6px;
+  border-radius: var(--r-sm);
+  background: var(--raised);
+  font-weight: 650;
+  white-space: nowrap;
+  vertical-align: -3px;
+}
+
+.inst-footer {
+  display: grid;
+  gap: var(--s-1);
+}
+.inst-footer__row {
+  display: flex;
+  justify-content: center;
+  gap: var(--s-2);
+}
+.inst-glyph--icon {
+  padding: 2px 4px;
+}

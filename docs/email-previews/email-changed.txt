@@ -1,0 +1,17 @@
+Subject: Your Setstamp email address was changed
+
+SETSTAMP
+
+Email changed
+
+The email address of your Setstamp account was changed to new.address@example.com.
+
+If this was you, there's nothing to do. If it wasn't, reply to this email right away so the account can be locked. A password reset would go to the new address.
+
+Open Setstamp:
+https://setstamp.example
+
+--
+You got this because this address belongs to a Setstamp account. We send it for every change to your sign-in details.
+
+Setstamp. Stamp the set. Keep it for good.

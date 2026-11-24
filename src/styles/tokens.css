@@ -1,0 +1,264 @@
+/*
+ * "Station Stencil" design tokens. See DESIGN.md.
+ * Theme: system by default; <html data-theme="light|dark"> overrides it.
+ * Light = zinc primer (galvanised steel, black stencil paint).
+ * Dark  = powder coat (matte black rack steel, white stencil paint).
+ * Safety orange (--action) is the one action colour: always a fill with --action-ink on it.
+ * Record blue (--record) marks what was achieved: PRs, body map, bests. Never a button.
+ * Legacy names (--tape*, --iron) are aliases so older screens keep working.
+ */
+
+/* Self-hosted variable fonts (OFL, see public/fonts). Precached by the service worker. */
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  src: url("/fonts/archivo-latin.woff2") format("woff2-variations"), url("/fonts/archivo-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
+    U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  src: url("/fonts/archivo-latin-ext.woff2") format("woff2-variations"), url("/fonts/archivo-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF,
+    U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Big Shoulders Stencil";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("/fonts/big-shoulders-stencil-latin.woff2") format("woff2-variations"),
+    url("/fonts/big-shoulders-stencil-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
+    U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Big Shoulders Stencil";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("/fonts/big-shoulders-stencil-latin-ext.woff2") format("woff2-variations"),
+    url("/fonts/big-shoulders-stencil-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF,
+    U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+:root {
+  color-scheme: light;
+
+  /* Grounds and surfaces: zinc primer */
+  --bg: oklch(0.935 0.004 80); /* #ebe9e6 */
+  --surface: oklch(0.988 0.002 80); /* #fcfbfa */
+  --raised: oklch(0.895 0.005 80); /* #dedcd9 */
+  --raised-press: oklch(0.855 0.006 80);
+  --seam: oklch(0.865 0.005 80);
+  --seam-strong: oklch(0.58 0.01 80); /* >= 3:1 for control boundaries */
+  --seg-track: oklch(0.895 0.005 80);
+  --seg-thumb: oklch(0.988 0.002 80);
+
+  /* Ink: black stencil paint */
+  --ink: oklch(0.2 0.006 70); /* #181613 */
+  --ink-2: oklch(0.4 0.01 70);
+  --ink-3: oklch(0.47 0.01 70);
+  --inverse: oklch(0.2 0.006 70);
+  --ink-on-inverse: oklch(0.975 0.004 80);
+
+  /* Safety orange: the one action colour */
+  --action: oklch(0.68 0.2 42); /* #f86111 */
+  --action-press: oklch(0.62 0.19 40);
+  --action-ink: oklch(0.16 0.02 50); /* 6.2:1 on --action */
+  --action-edge: oklch(0.5 0.15 40); /* 3:1+ boundary on light grounds */
+
+  /* State (safety colour code) */
+  --record: oklch(0.48 0.15 255); /* #0e5caf PRs, body map, bests */
+  --record-wash: oklch(0.93 0.03 250);
+  --ok: oklch(0.46 0.13 150);
+  --warn: oklch(0.49 0.12 75);
+  --danger: oklch(0.5 0.2 25);
+  --danger-wash: oklch(0.94 0.03 25);
+  --on-danger: oklch(0.99 0.003 80);
+
+  --focus: oklch(0.2 0.006 70);
+  --scrim: oklch(0.16 0.01 70 / 0.48);
+  --shadow-sheet: 0 -10px 36px oklch(0.2 0.01 70 / 0.2);
+  --shadow-toast: 0 10px 28px oklch(0.2 0.01 70 / 0.26);
+
+  /* Powder-coat grain: fine noise, barely there. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  /* Hazard stripe: only around irreversible actions. */
+  --hazard: repeating-linear-gradient(-45deg, var(--danger) 0 10px, transparent 10px 20px);
+
+  /* Body map (consumed by src/bodymap/bodymap.css via --bm-*; see global.css). Record-blue ramp. */
+  --map-silhouette: oklch(0.955 0.003 80);
+  --map-base: oklch(0.88 0.005 80);
+  --map-outline: oklch(0.6 0.01 80);
+  --map-detail: oklch(0.76 0.008 80);
+  --map-primary: oklch(0.45 0.16 258);
+  --map-secondary: oklch(0.62 0.14 250);
+  --map-hatch: oklch(0.3 0.1 258);
+  --map-selected: oklch(0.2 0.006 70);
+  --map-vol-1: oklch(0.74 0.1 245);
+  --map-vol-2: oklch(0.6 0.14 250);
+  --map-vol-3: oklch(0.48 0.15 255);
+  --map-vol-4: oklch(0.36 0.12 260);
+  --map-text: var(--ink-2);
+  --map-chip-bg: var(--surface);
+  --map-chip-border: var(--seam-strong);
+
+  /* Type */
+  --font-ui: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Big Shoulders Stencil", "Arial Narrow", "Roboto Condensed", sans-serif-condensed, var(--font-ui);
+  --num-stretch: 84%;
+  --num-weight: 760;
+  --fs-label: 0.8125rem; /* 13 */
+  --fs-sm: 0.9375rem; /* 15 */
+  --fs-body: 1.0625rem; /* 17 */
+  --fs-lead: 1.125rem; /* 18, large buttons, sheet titles */
+  --fs-title: 1.25rem; /* 20 */
+  --fs-headline: 2.25rem; /* 36, stencil */
+  --num-l: 1.75rem; /* 28 */
+  --num-xl: 2.75rem; /* 44 */
+  --num-xxl: 4.5rem; /* 72, rest timer */
+
+  /* Space (4px base) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --gutter: 16px;
+  --section-gap: 28px;
+  --content-max: 560px;
+
+  /* Shape: machined, tight */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 14px;
+  --r-pill: 999px;
+  --tape-w: 4px; /* legacy: width of marking bars */
+
+  /* Targets */
+  --hit-min: 44px;
+  --hit-action: 48px;
+  --hit-hero: 56px;
+  --tabbar-h: 68px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-press: 140ms;
+  --dur-fast: 160ms;
+  --dur-base: 220ms;
+  --dur-sheet: 320ms;
+
+  /* Legacy aliases ("Chalk on Rubber" names). Prefer --action* and --record in new code. */
+  --tape: var(--action);
+  --tape-press: var(--action-press);
+  --tape-ink: var(--action-ink);
+  --tape-edge: var(--action-edge);
+  --iron: var(--record);
+}
+
+/* Dark: powder coat. Written twice: system preference, and explicit override. Keep in sync. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: oklch(0.175 0.005 70); /* #12100e */
+    --surface: oklch(0.225 0.006 70); /* #1e1b19 */
+    --raised: oklch(0.29 0.007 70); /* #2e2b28 */
+    --raised-press: oklch(0.33 0.008 70);
+    --seam: oklch(0.31 0.007 70);
+    --seam-strong: oklch(0.52 0.01 70);
+    --seg-track: oklch(0.225 0.006 70);
+    --seg-thumb: oklch(0.36 0.008 70);
+    --ink: oklch(0.965 0.008 85); /* #f6f3ed */
+    --ink-2: oklch(0.8 0.01 80);
+    --ink-3: oklch(0.69 0.012 80);
+    --inverse: oklch(0.965 0.008 85);
+    --ink-on-inverse: oklch(0.175 0.005 70);
+    --action: oklch(0.72 0.19 45); /* #ff7527 */
+    --action-press: oklch(0.66 0.19 43);
+    --action-ink: oklch(0.17 0.02 50);
+    --action-edge: transparent;
+    --record: oklch(0.76 0.12 240); /* #62bbf5 */
+    --record-wash: oklch(0.29 0.05 245);
+    --ok: oklch(0.78 0.15 150);
+    --warn: oklch(0.84 0.15 90);
+    --danger: oklch(0.7 0.2 22);
+    --danger-wash: oklch(0.28 0.06 22);
+    --on-danger: oklch(0.16 0.01 50);
+    --focus: oklch(0.72 0.19 45);
+    --scrim: oklch(0.06 0.005 70 / 0.62);
+    --shadow-sheet: 0 -10px 36px oklch(0 0 0 / 0.5);
+    --shadow-toast: 0 10px 28px oklch(0 0 0 / 0.5);
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .045 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --map-silhouette: oklch(0.24 0.006 70);
+    --map-base: oklch(0.34 0.008 70);
+    --map-outline: oklch(0.55 0.01 70);
+    --map-detail: oklch(0.42 0.008 70);
+    --map-primary: oklch(0.8 0.11 240);
+    --map-secondary: oklch(0.65 0.14 248);
+    --map-hatch: oklch(0.92 0.04 240);
+    --map-selected: oklch(0.965 0.008 85);
+    --map-vol-1: oklch(0.55 0.14 250);
+    --map-vol-2: oklch(0.66 0.13 245);
+    --map-vol-3: oklch(0.77 0.11 240);
+    --map-vol-4: oklch(0.88 0.07 235);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: oklch(0.175 0.005 70);
+  --surface: oklch(0.225 0.006 70);
+  --raised: oklch(0.29 0.007 70);
+  --raised-press: oklch(0.33 0.008 70);
+  --seam: oklch(0.31 0.007 70);
+  --seam-strong: oklch(0.52 0.01 70);
+  --seg-track: oklch(0.225 0.006 70);
+  --seg-thumb: oklch(0.36 0.008 70);
+  --ink: oklch(0.965 0.008 85);
+  --ink-2: oklch(0.8 0.01 80);
+  --ink-3: oklch(0.69 0.012 80);
+  --inverse: oklch(0.965 0.008 85);
+  --ink-on-inverse: oklch(0.175 0.005 70);
+  --action: oklch(0.72 0.19 45);
+  --action-press: oklch(0.66 0.19 43);
+  --action-ink: oklch(0.17 0.02 50);
+  --action-edge: transparent;
+  --record: oklch(0.76 0.12 240);
+  --record-wash: oklch(0.29 0.05 245);
+  --ok: oklch(0.78 0.15 150);
+  --warn: oklch(0.84 0.15 90);
+  --danger: oklch(0.7 0.2 22);
+  --danger-wash: oklch(0.28 0.06 22);
+  --on-danger: oklch(0.16 0.01 50);
+  --focus: oklch(0.72 0.19 45);
+  --scrim: oklch(0.06 0.005 70 / 0.62);
+  --shadow-sheet: 0 -10px 36px oklch(0 0 0 / 0.5);
+  --shadow-toast: 0 10px 28px oklch(0 0 0 / 0.5);
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .045 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --map-silhouette: oklch(0.24 0.006 70);
+  --map-base: oklch(0.34 0.008 70);
+  --map-outline: oklch(0.55 0.01 70);
+  --map-detail: oklch(0.42 0.008 70);
+  --map-primary: oklch(0.8 0.11 240);
+  --map-secondary: oklch(0.65 0.14 248);
+  --map-hatch: oklch(0.92 0.04 240);
+  --map-selected: oklch(0.965 0.008 85);
+  --map-vol-1: oklch(0.55 0.14 250);
+  --map-vol-2: oklch(0.66 0.13 245);
+  --map-vol-3: oklch(0.77 0.11 240);
+  --map-vol-4: oklch(0.88 0.07 235);
+}

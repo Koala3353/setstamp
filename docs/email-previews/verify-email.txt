@@ -1,0 +1,17 @@
+Subject: Confirm your email for Setstamp
+
+SETSTAMP
+
+Confirm your email
+
+Tap the button to confirm this address and finish setting up your Setstamp account.
+
+Confirm email:
+https://setstamp.example/auth/validate-email?code=PREVIEW_8f3kQ2vX9mLr7TzA1bNc4dEe6gHh0iJj
+
+The link stops working after 1 hour and only works in the browser where you signed up.
+
+--
+You got this because someone used this address on Setstamp. If it wasn't you, ignore this email.
+
+Setstamp. Stamp the set. Keep it for good.

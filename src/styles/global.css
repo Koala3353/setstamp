@@ -1,0 +1,140 @@
+@import "tailwindcss";
+@import "./tokens.css";
+@import "../ui/ui.css";
+
+/* Tailwind utilities read the same tokens: bg-bg, bg-surface, text-ink, text-ink-2, bg-tape ... */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-seam: var(--seam);
+  --color-seam-strong: var(--seam-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-action: var(--action);
+  --color-action-ink: var(--action-ink);
+  --color-record: var(--record);
+  --color-tape: var(--tape);
+  --color-tape-ink: var(--tape-ink);
+  --color-iron: var(--iron);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-ui);
+  --font-stencil: var(--font-display);
+  --text-label: var(--fs-label);
+  --text-sm: var(--fs-sm);
+  --text-body: var(--fs-body);
+  --text-title: var(--fs-title);
+  --text-headline: var(--fs-headline);
+  --radius-xs: var(--r-xs);
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+}
+
+/* Re-theme the body map. :is() outranks bodymap.css's zero-specificity :where() defaults. */
+:is(.bm-root, .bm-legend, .bm-chips) {
+  --bm-silhouette: var(--map-silhouette);
+  --bm-base: var(--map-base);
+  --bm-outline: var(--map-outline);
+  --bm-detail: var(--map-detail);
+  --bm-primary: var(--map-primary);
+  --bm-secondary: var(--map-secondary);
+  --bm-hatch: var(--map-hatch);
+  --bm-selected: var(--map-selected);
+  --bm-vol-1: var(--map-vol-1);
+  --bm-vol-2: var(--map-vol-2);
+  --bm-vol-3: var(--map-vol-3);
+  --bm-vol-4: var(--map-vol-4);
+  --bm-text: var(--map-text);
+  --bm-chip-bg: var(--map-chip-bg);
+  --bm-chip-border: var(--map-chip-border);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    background: var(--bg);
+  }
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    font-family: var(--font-ui);
+    font-size: var(--fs-body);
+    line-height: 1.45;
+    color: var(--ink);
+    font-optical-sizing: auto;
+    background-color: var(--bg);
+    /* Powder-coat grain: a faint noise tile. Scrolls with the page (cheap on phones). */
+    background-image: var(--grain);
+    background-size: 160px 160px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--action);
+    color: var(--action-ink);
+  }
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+}
+
+/* Numbers a lifter acts on: stamped, condensed, tabular. */
+.num {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  font-stretch: var(--num-stretch);
+  font-weight: var(--num-weight);
+}
+
+/* Stencil display: screen titles, rest timer, wordmark. Never body copy, never below 1.5rem. */
+.display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-variation-settings: "opsz" 72;
+  text-transform: uppercase;
+  line-height: 0.95;
+  letter-spacing: 0.005em;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}

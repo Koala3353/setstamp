@@ -1,0 +1,430 @@
+/* App shell: header, docked tab bar, active-workout bar, screen layout. */
+
+.shell {
+  min-height: 100dvh;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--s-2);
+  top: -100px;
+  z-index: 100;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-sm);
+  background: var(--inverse);
+  color: var(--ink-on-inverse);
+  font-weight: 700;
+}
+.skip-link:focus {
+  top: var(--s-2);
+}
+
+/* ---------- Header ---------- */
+.shell-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  max-width: var(--content-max);
+  min-height: 64px;
+  margin: 0 auto;
+  padding: env(safe-area-inset-top) calc(var(--gutter) - 6px) 0 var(--gutter);
+  /* Same powder-coat as the page, so the sticky header doesn't read as a separate band. */
+  background: var(--bg) var(--grain);
+  background-size: 160px 160px;
+}
+.shell-header:has(.ui-iconbtn:first-child) {
+  padding-left: calc(var(--gutter) - 10px);
+}
+/* Stencilled station title: the screen's name sprayed on the rack. */
+.shell-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding-top: 4px;
+  font-size: var(--fs-headline);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.shell-title--sub {
+  font-size: var(--num-l); /* 28px: sub-screen stencil title */
+}
+/* The title takes focus on navigation so screen readers announce the new screen. It is not a
+   control, so it never draws a focus ring (one appeared after any keyboard use, e.g. Escape). */
+.shell-title:focus,
+.shell-title:focus-visible {
+  outline: none;
+}
+.shell-header__end {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* ---------- Main ---------- */
+.shell-main {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--s-2) var(--gutter) calc(var(--dock-h, var(--tabbar-h)) + env(safe-area-inset-bottom) + var(--s-6));
+}
+.shell-main:focus {
+  outline: none;
+}
+
+.screen {
+  display: grid;
+  gap: var(--section-gap);
+}
+.screen-kicker {
+  margin: calc(var(--s-2) * -1) 0 calc(var(--s-3) - var(--section-gap));
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  font-weight: 560;
+}
+
+.section {
+  display: grid;
+  gap: var(--s-3);
+}
+/* Legacy hooks: older screens may style these directly. */
+.section__title {
+  margin: 0;
+  font-size: var(--fs-title);
+  font-weight: 720;
+  line-height: 1.2;
+}
+.section__icon {
+  color: var(--ink-3);
+}
+
+.stack {
+  display: grid;
+  gap: var(--s-4);
+}
+.muted {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  max-width: 60ch;
+}
+.small {
+  font-size: var(--fs-label);
+}
+.about {
+  padding-top: var(--s-2);
+}
+
+/* Primary action docked in the thumb zone, above the tab bar. */
+.screen-action {
+  position: sticky;
+  bottom: calc(var(--dock-h, var(--tabbar-h)) + env(safe-area-inset-bottom) + var(--s-3));
+  z-index: 10;
+  margin-top: var(--s-2);
+}
+.screen-action::before {
+  /* fade the content scrolling underneath, so the action never floats on text */
+  content: "";
+  position: absolute;
+  inset: calc(var(--s-6) * -1) calc(var(--gutter) * -1) calc(var(--s-3) * -1 - env(safe-area-inset-bottom));
+  z-index: -1;
+  background: linear-gradient(to bottom, transparent, var(--bg) 45%);
+  pointer-events: none;
+}
+
+/* ---------- Dock: active workout bar + tab bar ---------- */
+.shell-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--surface);
+  border-top: 1px solid var(--seam);
+}
+.shell-dock:empty {
+  display: none;
+}
+
+.tabbar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  max-width: var(--content-max);
+  height: var(--tabbar-h);
+  margin: 0 auto;
+  padding: 0 var(--s-1);
+}
+.tabbar__tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--ink-3);
+  font-size: var(--fs-label);
+  font-weight: 620;
+  text-decoration: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+/* The active tab gets an ink plate behind its icon, like a station number plate. */
+.tabbar__plate {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 32px;
+  border-radius: var(--r-sm);
+  transition:
+    transform var(--dur-press) var(--ease-out),
+    background-color var(--dur-fast) ease,
+    color var(--dur-fast) ease;
+}
+.tabbar__tab.is-active {
+  color: var(--ink);
+  font-weight: 720;
+}
+.tabbar__tab.is-active .tabbar__plate {
+  background: var(--inverse);
+  color: var(--ink-on-inverse);
+}
+.tabbar__tab:active .tabbar__plate {
+  transform: scale(0.92);
+}
+.tabbar__tab:not(.is-active):active .tabbar__plate {
+  background: var(--raised);
+}
+@media (hover: hover) and (pointer: fine) {
+  .tabbar__tab:not(.is-active):hover .tabbar__plate {
+    background: var(--raised);
+  }
+}
+.tabbar__tab:focus-visible {
+  outline-offset: -4px;
+  border-radius: var(--r-md);
+}
+
+.workout-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  max-width: var(--content-max);
+  height: 64px;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--seam);
+}
+.workout-bar__dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--r-xs);
+  background: var(--ok);
+  animation: live 2s ease-in-out infinite;
+}
+@keyframes live {
+  50% {
+    opacity: 0.35;
+  }
+}
+.workout-bar__text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+.workout-bar__name {
+  font-weight: 720;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.workout-bar__meta {
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+.workout-bar__cta {
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--hit-min);
+  padding: 0 var(--s-4);
+  border: 1px solid var(--action-edge);
+  border-radius: var(--r-md);
+  background: var(--action);
+  color: var(--action-ink);
+  font-weight: 720;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+.workout-bar:active .workout-bar__cta {
+  background: var(--action-press);
+  transform: scale(0.97);
+}
+.workout-bar:focus-visible {
+  outline-offset: -3px;
+}
+
+/* ---------- Update banner ---------- */
+.update-banner {
+  display: grid;
+  gap: var(--s-2);
+  margin-bottom: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1.5px solid var(--seam-strong);
+}
+.update-banner__text {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 550;
+}
+.update-banner__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s-2);
+}
+
+/* ---------- Workout placeholder ---------- */
+.clock {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+}
+/* Elapsed time is context, not something acted on mid-set: it sits a step below the set
+   numbers so weight and reps stay the loudest figures on the workout screen. */
+.clock__value {
+  font-size: var(--num-l);
+  line-height: 1;
+}
+.clock__label {
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+.sheet-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+}
+
+/* ---------- Program queue (rolling days, stations on one line) ---------- */
+.queue {
+  position: relative;
+  display: grid;
+  gap: var(--s-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.queue::before {
+  content: "";
+  position: absolute;
+  left: 17px;
+  top: 18px;
+  bottom: 18px;
+  width: 2px;
+  background: var(--seam-strong);
+}
+.queue__stop {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 56px;
+}
+.queue__index {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  border: 2px solid var(--seam-strong);
+  font-size: var(--fs-sm);
+  font-weight: 760;
+  font-stretch: var(--num-stretch);
+  font-variant-numeric: tabular-nums;
+}
+/* Next up: an ink station plate (orange is reserved for the Start button). */
+.queue__stop:first-child .queue__index {
+  background: var(--inverse);
+  border-color: var(--inverse);
+  color: var(--ink-on-inverse);
+}
+.queue__text {
+  display: grid;
+}
+.queue__name {
+  font-weight: 680;
+}
+.queue__focus {
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+
+/* ---------- Search ---------- */
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.search__icon {
+  position: absolute;
+  left: var(--s-3);
+  color: var(--ink-2);
+  pointer-events: none;
+}
+.search__input {
+  width: 100%;
+  height: 52px;
+  padding: 0 52px 0 46px;
+  border: 1.5px solid var(--seam-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--fs-body);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.search__input::placeholder {
+  color: var(--ink-3);
+}
+.search__input::-webkit-search-cancel-button {
+  display: none;
+}
+.search__input:focus {
+  outline: none;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 1.5px var(--focus);
+}
+.search__clear {
+  position: absolute;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: var(--hit-min);
+  height: var(--hit-min);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workout-bar__dot {
+    animation: none;
+  }
+  .tabbar__plate {
+    transition: background-color var(--dur-fast) ease;
+  }
+  .tabbar__tab:active .tabbar__plate,
+  .workout-bar:active .workout-bar__cta {
+    transform: none;
+  }
+}

@@ -1,0 +1,180 @@
+/* Settings: plate editor, sync details, delete confirmations. */
+
+.field {
+  display: grid;
+  gap: var(--s-2);
+}
+.field__label {
+  padding: 0;
+  font-size: var(--fs-label);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+/* ---------- Plates ---------- */
+.plates {
+  display: grid;
+  gap: var(--s-3);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.plates__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.plates__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--hit-min);
+  padding: 0 var(--s-2) 0 var(--s-3);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--raised);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-body);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+.plates__chip svg {
+  color: var(--ink-2);
+}
+.plates__chip:active {
+  background: var(--raised-press);
+  transform: scale(0.97);
+}
+.plates__unit {
+  font-size: var(--fs-label);
+  color: var(--ink-2);
+}
+.plates__add {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--s-2);
+  align-items: end;
+}
+.plates__add .ui-btn {
+  min-height: 52px;
+}
+.plates__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-left: calc(var(--s-3) * -1);
+}
+
+/* ---------- Sync ---------- */
+.syncbox {
+  display: grid;
+  gap: var(--s-4);
+}
+.syncbox__state {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0;
+  font-weight: 680;
+}
+.syncbox__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
+  background: var(--raised);
+  color: var(--ink-2);
+}
+.syncbox__state--synced .syncbox__icon {
+  color: var(--ok);
+}
+.syncbox__state--saved_local .syncbox__icon,
+.syncbox__state--offline .syncbox__icon {
+  color: var(--warn);
+}
+.syncbox__state--error .syncbox__icon {
+  background: var(--danger-wash);
+  color: var(--danger);
+}
+.syncbox__facts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.syncbox .muted + .muted {
+  margin-top: calc(var(--s-3) * -1);
+}
+.syncbox__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+/* ---------- Delete: the one place the hazard stripe appears ---------- */
+.datadelete {
+  display: grid;
+  gap: var(--s-3);
+  margin-top: var(--s-4);
+}
+.danger-list .ui-row__title {
+  color: var(--danger);
+}
+.danger-list .ui-row__leading {
+  color: var(--danger);
+}
+.confirm-notes {
+  display: grid;
+  gap: var(--s-2);
+  margin: 0;
+  padding-left: 1.2em;
+  list-style: square;
+  color: var(--ink-2);
+}
+.confirm-notes li::marker {
+  color: var(--danger);
+}
+.confirm-notes__warn {
+  margin: 0;
+  color: var(--danger);
+  font-weight: 640;
+}
+.confirm-field .ui-field__label {
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+.confirm-field__phrase {
+  padding: 1px 5px;
+  border-radius: var(--r-xs);
+  background: var(--raised);
+  font-weight: 760;
+  font-stretch: var(--num-stretch);
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+.confirm-check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  min-height: var(--hit-min);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.confirm-check input {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 1px 0 0;
+  accent-color: var(--danger);
+}
+/* Destructive sheets: the long, explicit labels get a full row each; "keep" stays first. */
+.confirm-actions {
+  grid-template-columns: minmax(0, 1fr);
+}
