@@ -28,6 +28,37 @@ export function showSheetModal(dialog: HTMLDialogElement): void {
   dialog.scrollTop = 0;
   dialog.scrollLeft = 0;
 }
+type ViewportLike = Pick<VisualViewport, "offsetLeft" | "offsetTop" | "width" | "height">;
+type ViewportSource = ViewportLike & Pick<VisualViewport, "addEventListener" | "removeEventListener">;
+type StyleTarget = { style: Pick<CSSStyleDeclaration, "setProperty" | "removeProperty"> };
+const VV_VARS = ["--vv-x", "--vv-y", "--vv-w", "--vv-h"] as const;
+
+/**
+ * Keep the sheet in the part of the screen the user can see. The dialog is sized to the layout
+ * viewport, which is not the screen when the on-screen keyboard is up (Android Chrome shrinks only
+ * the visual viewport; iOS Safari pans it) or when something on the page overflows sideways
+ * (Android then widens the layout viewport to fit, and a focused field pans the view across it).
+ * Publishes the visual viewport's rect as CSS variables that ui.css places the panel with.
+ */
+export function followVisualViewport(target: StyleTarget, vv: ViewportSource | null | undefined): () => void {
+  if (!vv) return () => {};
+  const apply = () => {
+    const { offsetLeft, offsetTop, width, height } = vv;
+    target.style.setProperty("--vv-x", `${offsetLeft}px`);
+    target.style.setProperty("--vv-y", `${offsetTop}px`);
+    target.style.setProperty("--vv-w", `${width}px`);
+    target.style.setProperty("--vv-h", `${height}px`);
+  };
+  apply();
+  vv.addEventListener("resize", apply);
+  vv.addEventListener("scroll", apply);
+  return () => {
+    vv.removeEventListener("resize", apply);
+    vv.removeEventListener("scroll", apply);
+    for (const name of VV_VARS) target.style.removeProperty(name);
+  };
+}
+
 const FLICK_VELOCITY = 0.11; // px per ms
 const DISMISS_FRACTION = 0.3;
 
@@ -72,6 +103,14 @@ export function Sheet({ open, onClose, title, description, children, footer, cla
     }
     return undefined;
   }, [open]);
+
+  // Track the visible screen (keyboard, sideways overflow) while the sheet is up, exit included.
+  const shown = open || state !== "closed";
+  useLayoutEffect(() => {
+    const dialog = ref.current;
+    if (!shown || !dialog) return undefined;
+    return followVisualViewport(dialog, window.visualViewport);
+  }, [shown]);
 
   // Escape: let React own the close so the exit animates.
   useEffect(() => {

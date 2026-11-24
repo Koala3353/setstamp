@@ -428,7 +428,14 @@
   min-width: 0;
   gap: 2px;
 }
+/* Long titles ("Palms-Up Dumbbell Wrist Curl Over A Bench") take two lines, then ellipsize;
+   an unbroken string breaks anywhere instead of widening the row. */
 .ui-row__title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
   font-size: var(--fs-body);
   font-weight: 620;
   line-height: 1.25;
@@ -818,16 +825,22 @@
   opacity: 0;
   transition-duration: 200ms;
 }
+/* The panel is placed in the visible part of the screen (the visual viewport, published by
+   Sheet.tsx as --vv-*), not in the dialog's box. The dialog spans the layout viewport, which on
+   Android grows wider than the screen when anything on the page overflows sideways, and which the
+   on-screen keyboard doesn't shrink (Chrome resizes only the visual viewport; iOS pans it). Without
+   the variables (first frame, no visualViewport) it falls back to the dialog's box. Centred with
+   arithmetic rather than `translate`, which older Samsung Internet doesn't support. */
 .ui-sheet__panel {
+  --vv-w-: var(--vv-w, 100%);
+  --panel-w: min(var(--vv-w-), var(--content-max));
   position: absolute;
-  left: 50%;
-  bottom: 0;
+  left: calc(var(--vv-x, 0px) + (var(--vv-w-) - var(--panel-w)) / 2);
+  bottom: calc(100% - var(--vv-y, 0px) - var(--vv-h, 100%));
   display: flex;
   flex-direction: column;
-  width: 100%;
-  max-width: var(--content-max);
-  max-height: calc(100dvh - 40px - env(safe-area-inset-top));
-  translate: -50% 0;
+  width: var(--panel-w);
+  max-height: calc(var(--vv-h, 100dvh) - 40px - env(safe-area-inset-top));
   border-radius: var(--r-lg) var(--r-lg) 0 0;
   background: var(--surface);
   box-shadow: var(--shadow-sheet);

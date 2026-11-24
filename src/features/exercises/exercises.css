@@ -32,7 +32,7 @@
   border-bottom: 1px solid var(--seam);
 }
 .expicker .ui-sheet__panel {
-  height: calc(100dvh - 48px);
+  height: calc(var(--vv-h, 100dvh) - 48px);
 }
 .exfilters {
   display: grid;
@@ -149,6 +149,12 @@
   font-size: var(--fs-body);
   font-weight: 650;
   line-height: 1.25;
+  /* Two lines, then an ellipsis: long names never crowd the row or widen the sheet. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
   overflow-wrap: anywhere;
 }
 .exrow__meta {

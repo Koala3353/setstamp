@@ -76,6 +76,13 @@
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior-y: none;
   }
+  /* Nothing may widen the page. On Android a sideways overflow widens the layout viewport too:
+     fixed layers (sheets, toasts, the tour) then span more than the screen and the view can pan
+     across them. `clip` (unlike `hidden`) makes no scroll container, so sticky headers still work. */
+  html,
+  body {
+    overflow-x: clip;
+  }
   :focus-visible {
     outline: 3px solid var(--focus);
     outline-offset: 2px;
