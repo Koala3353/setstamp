@@ -76,6 +76,8 @@
 
 .screen {
   display: grid;
+  /* One column that never grows past the screen, whatever a child's longest unbreakable line. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--section-gap);
 }
 .screen-kicker {
@@ -102,6 +104,7 @@
 
 .stack {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-4);
 }
 .muted {
@@ -309,6 +312,10 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--s-2);
+}
+/* A lone action spans the row instead of sitting in half of it. */
+.sheet-actions > :only-child {
+  grid-column: 1 / -1;
 }
 
 /* ---------- Program queue (rolling days, stations on one line) ---------- */

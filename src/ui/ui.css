@@ -523,6 +523,12 @@
     background-color var(--dur-fast) ease,
     color var(--dur-fast) ease;
 }
+/* 320px phones: four options (Progress tabs) fit without widening the page. */
+@media (max-width: 359px) {
+  .ui-seg__opt {
+    padding: 0 var(--s-1);
+  }
+}
 .ui-seg__opt.is-on {
   background: var(--seg-thumb);
   color: var(--ink);
@@ -796,7 +802,9 @@
   border: 0;
   background: transparent;
   color: var(--ink);
+  /* Not a scroll container: focusing the off-screen close button on open can't scroll it. */
   overflow: hidden;
+  overflow: clip;
 }
 .ui-sheet::backdrop {
   background: var(--scrim);
@@ -880,6 +888,10 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: var(--s-4);
+}
+/* No footer: the body is the last thing above the home indicator. */
+.ui-sheet__body:last-child {
+  padding-bottom: calc(var(--s-4) + env(safe-area-inset-bottom));
 }
 .ui-sheet__footer {
   flex: none;

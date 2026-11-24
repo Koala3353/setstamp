@@ -17,6 +17,17 @@ export type SheetProps = {
 };
 
 const EXIT_MS = 200;
+
+/**
+ * showModal() focuses the close button while the panel is still parked below the screen, and the
+ * browser scrolls the dialog to bring it into view. CSS `overflow: clip` stops that where it is
+ * supported; this undoes it everywhere else, so the sheet slides in from the right place.
+ */
+export function showSheetModal(dialog: HTMLDialogElement): void {
+  dialog.showModal();
+  dialog.scrollTop = 0;
+  dialog.scrollLeft = 0;
+}
 const FLICK_VELOCITY = 0.11; // px per ms
 const DISMISS_FRACTION = 0.3;
 
@@ -39,7 +50,7 @@ export function Sheet({ open, onClose, title, description, children, footer, cla
     if (!dialog) return;
     if (open && !dialog.open) {
       opener.current = document.activeElement;
-      dialog.showModal();
+      showSheetModal(dialog);
       setState("closed");
       // Next frame so the transition runs from the closed position.
       const raf = requestAnimationFrame(() => setState("open"));

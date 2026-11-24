@@ -3,6 +3,10 @@
 .prog-back {
   margin: calc(var(--s-2) * -1) 0 calc(var(--s-4) - var(--section-gap)) calc(-1 * var(--s-3));
 }
+/* A long program name ellipsizes instead of widening the page. */
+.prog-back .ui-btn {
+  max-width: 100%;
+}
 .prog-name .ui-field__input {
   font-size: var(--fs-title);
   font-weight: 700;
@@ -190,6 +194,13 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--s-2);
+}
+/* 320px phones: two labelled buttons don't fit side by side. */
+@media (max-width: 359px) {
+  .prog-manage,
+  .prog-next__row {
+    grid-template-columns: 1fr;
+  }
 }
 .prog-manage__delete.ui-btn {
   color: var(--danger);
