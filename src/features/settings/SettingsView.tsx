@@ -22,6 +22,7 @@ import {
   IconPlus,
   IconSync,
   ListGroup,
+  ListRow,
   Segmented,
   Stat,
   StatGrid,
@@ -34,6 +35,7 @@ import { AccountRows } from "../session/AccountSection";
 import { useUpdateSettings, useUserSettings } from "../session/hooks";
 import { useOnline } from "../session/SessionProvider";
 import { openSyncIssues } from "../session/SyncIssues";
+import { useTutorial } from "../tutorial";
 import { DataControls } from "./DataControls";
 import { isIOS, isStandalone, promptInstall, useInstallState } from "./install";
 import "./settings.css";
@@ -50,7 +52,7 @@ const sameSet = (a: number[], b: number[]) =>
  * standard set; anything the user customised is kept. Without this a lb user gets a "44 lb" bar
  * and kg plates in the plate calculator.
  */
-function unitChange(s: { barKg: number; platesKg: number[] }, unit: Unit) {
+export function unitChange(s: { barKg: number; platesKg: number[] }, unit: Unit) {
   const lbPlatesKg = LB_PLATES.map((p) => toKg(p, "lb"));
   const patch: { unit: Unit; barKg?: number; platesKg?: number[] } = { unit };
   if (unit === "lb") {
@@ -200,6 +202,10 @@ export function SettingsView() {
 
       <Section title="Your data" id="set-data">
         <DataControls />
+      </Section>
+
+      <Section title="Help" id="set-help">
+        <HelpRows />
       </Section>
 
       <Section title="About" id="set-about">
@@ -391,6 +397,20 @@ function SyncDetails() {
         )}
       </div>
     </Card>
+  );
+}
+
+function HelpRows() {
+  const { replay, openHelp } = useTutorial();
+  return (
+    <ListGroup label="Help">
+      <li>
+        <ListRow title="Replay tutorial" meta="A practice workout, start to finish. About two minutes." onClick={replay} chevron />
+      </li>
+      <li>
+        <ListRow title="Screen tips" meta="Tap ? at the top of any screen for tips on that screen." onClick={openHelp} chevron />
+      </li>
+    </ListGroup>
   );
 }
 

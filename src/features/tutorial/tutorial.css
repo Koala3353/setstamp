@@ -1,0 +1,206 @@
+/* First-run tour: a dimmed page with a cutout over the real control, and a plate card beside it.
+   The dim never takes taps (pointer-events: none), so the highlighted control works as normal. */
+
+.tour {
+  --tour-dim: oklch(0.12 0.006 70 / 0.56);
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+}
+:root[data-theme="dark"] .tour {
+  --tour-dim: oklch(0.04 0.004 70 / 0.66);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .tour {
+    --tour-dim: oklch(0.04 0.004 70 / 0.66);
+  }
+}
+.tour.is-hidden {
+  visibility: hidden;
+}
+
+/* The cutout: a transparent box whose huge shadow is the dim. Shadows don't take pointer events. */
+.tour__hole {
+  position: fixed;
+  border-radius: var(--r-md);
+  box-shadow:
+    0 0 0 2px var(--ink),
+    0 0 0 200vmax var(--tour-dim);
+}
+.tour__scrim {
+  position: fixed;
+  inset: 0;
+  background: var(--tour-dim);
+}
+/* Welcome and done are choices about the tour itself: the page waits behind them. */
+.tour.is-blocking .tour__scrim {
+  pointer-events: auto;
+}
+
+.tour__card {
+  position: fixed;
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-4);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--seam-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-toast);
+  pointer-events: auto;
+  outline: none;
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+@starting-style {
+  .tour__card {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  .tour__card--above {
+    transform: translateY(-6px) scale(0.98);
+  }
+}
+.tour__card:focus-visible {
+  box-shadow:
+    var(--shadow-toast),
+    0 0 0 3px var(--focus, var(--ink));
+}
+
+.tour__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  min-height: 24px;
+}
+.tour__count {
+  font-size: var(--fs-label);
+  color: var(--ink-3);
+}
+.tour__skip {
+  margin: -10px -10px -10px auto;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.tour__skip:active {
+  transform: scale(0.97);
+}
+.tour__title {
+  margin: 0;
+  font-size: var(--fs-title);
+  font-weight: 720;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+.tour__body {
+  margin: 0;
+  max-width: 60ch;
+  font-size: var(--fs-body);
+  line-height: 1.45;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+.tour__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+}
+.tour__actions > .ui-btn:first-child {
+  flex: 1 1 auto;
+}
+
+.tour__form {
+  display: grid;
+  gap: var(--s-4);
+  margin-top: var(--s-2);
+}
+.tour__field {
+  display: grid;
+  gap: var(--s-2);
+}
+.tour__label {
+  font-size: var(--fs-label);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.tour__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.tour__note {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--ink-3);
+}
+
+/* One line over an open sheet. Lives in the top layer, above the sheet; never takes taps. */
+.tour-hint {
+  inset: auto 16px;
+  width: auto;
+  height: auto;
+  margin: 0 auto;
+  max-width: 528px;
+  padding: 10px 14px;
+  border: 1px solid var(--seam-strong);
+  border-radius: var(--r-md);
+  background: var(--ink);
+  color: var(--bg);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  box-shadow: var(--shadow-toast);
+  pointer-events: none;
+}
+.tour-hint--top {
+  top: max(12px, env(safe-area-inset-top));
+}
+.tour-hint--bottom {
+  bottom: max(16px, env(safe-area-inset-bottom));
+}
+.tour-hint:not(:popover-open) {
+  display: none;
+}
+
+.help-tips {
+  display: grid;
+  gap: var(--s-3);
+  margin: 0;
+  padding: 0 0 0 1.1em;
+  color: var(--ink-2);
+}
+.help-tips li::marker {
+  color: var(--ink-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @starting-style {
+    .tour__card,
+    .tour__card--above {
+      transform: none;
+    }
+  }
+  .tour__card {
+    transition: opacity var(--dur-fast) linear;
+  }
+  .tour__skip:active {
+    transform: none;
+  }
+}

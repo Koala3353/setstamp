@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { IconButton, IconChevronLeft, IconProgram, IconProgress, IconSearch, IconSettings, IconToday, SectionHeader, SyncStatus, cx } from "../ui";
+import { IconHelp, useTutorial } from "../features/tutorial";
 import { useActiveWorkout } from "./activeWorkout";
 import { goBack, href, navigate, useRoute, type RouteName } from "./router";
 import { useShellSyncStatus } from "./syncSource";
@@ -16,6 +17,12 @@ const TABS: Array<{ name: RouteName; path: string; label: string; Icon: typeof I
 const TABBAR_H = 68;
 const BAR_H = 64;
 
+const currentKey = () => {
+  const raw = window.location.hash.replace(/^#/, "").split("?")[0] || "/";
+  const path = raw.startsWith("/") ? raw : "/" + raw;
+  return path.length > 1 ? path.replace(/\/+$/, "") : "/";
+};
+
 /** Screens that sit "inside" a tab and show a back button instead of the tab bar title. */
 const SUBSCREENS: Partial<Record<RouteName, { back: string }>> = {
   settings: { back: "/" },
@@ -27,6 +34,7 @@ export function Shell({ title, children }: { title: string; children: ReactNode 
   const route = useRoute();
   const sync = useShellSyncStatus();
   const { session } = useActiveWorkout();
+  const { openHelp } = useTutorial();
   const name = route.name === "notFound" ? null : route.name;
   const sub = name ? SUBSCREENS[name] : undefined;
   const inWorkout = name === "workout";
@@ -38,8 +46,25 @@ export function Shell({ title, children }: { title: string; children: ReactNode 
   // Screen changes: scroll to top and move focus to the new heading (announces the screen).
   const headingRef = useRef<HTMLHeadingElement>(null);
   const first = useRef(true);
+  // Back/forward returns to where the screen was left (e.g. the workout after a peek at an exercise).
+  const scrolls = useRef(new Map<string, number>());
+  // Read at popstate, before the incoming screen renders and the browser clamps the scroll.
+  const restore = useRef<number | undefined>(undefined);
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const onPop = () => (restore.current = scrolls.current.get(currentKey()));
+    const onScroll = () => scrolls.current.set(currentKey(), window.scrollY);
+    window.addEventListener("popstate", onPop);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+  useEffect(() => {
+    const saved = restore.current;
+    restore.current = undefined;
+    if (saved) requestAnimationFrame(() => window.scrollTo(0, saved));
+    else window.scrollTo(0, 0);
     if (first.current) {
       first.current = false;
       return;
@@ -65,6 +90,7 @@ export function Shell({ title, children }: { title: string; children: ReactNode 
         </h1>
         <div className="shell-header__end">
           <SyncStatus status={sync} />
+          <IconButton label="Help" icon={<IconHelp />} onClick={openHelp} />
           {name !== "settings" && <IconButton label="Settings" icon={<IconSettings />} onClick={() => navigate("/settings")} />}
         </div>
       </header>

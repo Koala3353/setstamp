@@ -1,6 +1,7 @@
 // Invitation to add the app to the home screen. Shown once per page load, on the Today screen,
 // in a browser tab, after the first screen settles; never over a workout. "Not now" (or closing
-// the sheet) snoozes 7 days; "Don't ask again" is permanent.
+// the sheet) snoozes 7 days; "Don't ask again" is permanent. `held` (the first-run tour is
+// running or deciding whether to start) delays it; the timer restarts once the hold lifts.
 import { useEffect, useState } from "react";
 import { Button, Sheet } from "../../ui";
 import { installedEarlier, isAndroid, isIOS, isStandalone, promptInstall, useInstallState } from "../settings/install";
@@ -27,12 +28,12 @@ function writeMemory(m: PromptMemory) {
 }
 
 /** Controller: decides whether to open. Mount it where the Today screen renders. */
-export function InstallPrompt({ onToday, workoutActive }: { onToday: boolean; workoutActive: boolean }) {
+export function InstallPrompt({ onToday, workoutActive, held = false }: { onToday: boolean; workoutActive: boolean; held?: boolean }) {
   const { canPrompt, installed } = useInstallState();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (!onToday || workoutActive) return;
+    if (!onToday || workoutActive || held) return;
     const t = window.setTimeout(() => {
       const ok = shouldOfferInstall({
         standalone: isStandalone(),
@@ -49,7 +50,7 @@ export function InstallPrompt({ onToday, workoutActive }: { onToday: boolean; wo
       }
     }, SHOW_DELAY_MS);
     return () => window.clearTimeout(t);
-  }, [onToday, workoutActive, installed]);
+  }, [onToday, workoutActive, installed, held]);
 
   // Installed from the browser menu while the sheet was up: nothing left to ask.
   useEffect(() => {

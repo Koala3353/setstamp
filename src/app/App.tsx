@@ -4,6 +4,7 @@ import { Welcome } from "../features/auth/Welcome";
 import { InstallPrompt } from "../features/install/InstallPrompt";
 import { decideEntry, launchedAsApp } from "../features/landing/entry";
 import { isIOS, isStandalone } from "../features/settings/install";
+import { TutorialProvider, useTutorial } from "../features/tutorial";
 import { SessionProvider, useSession } from "../features/session/SessionProvider";
 import { SyncIssuesSheet } from "../features/session/SyncIssues";
 import { Spinner, ToastProvider } from "../ui";
@@ -50,12 +51,14 @@ const AS_APP = typeof window !== "undefined" && launchedAsApp({ displayStandalon
 function Routed() {
   const route = useRoute();
   const { session } = useActiveWorkout();
+  const tour = useTutorial();
   const { title, node } = screenFor(route, session?.name ?? null);
   return (
     <Shell title={title}>
       <UpdatePrompt />
       {node}
-      <InstallPrompt onToday={route.name === "today"} workoutActive={session != null} />
+      {/* The tour goes first on a new account; the install invitation waits until it ends. */}
+      <InstallPrompt onToday={route.name === "today"} workoutActive={session != null} held={tour.holdPopups} />
     </Shell>
   );
 }
@@ -117,7 +120,9 @@ function Gate() {
       if (redirect) return <Splash />;
       return (
         <ActiveWorkoutProvider>
-          <Routed />
+          <TutorialProvider>
+            <Routed />
+          </TutorialProvider>
           <SyncIssuesSheet />
         </ActiveWorkoutProvider>
       );
