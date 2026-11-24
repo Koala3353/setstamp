@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy – Setstamp</title>
+    <meta name="description" content="What Setstamp stores about you, where it lives, and how to export or delete it." />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <style>
+      @font-face {
+        font-family: "Archivo";
+        font-display: swap;
+        font-weight: 100 900;
+        src: url("fonts/archivo-latin.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Big Shoulders Stencil";
+        font-display: swap;
+        font-weight: 100 900;
+        src: url("fonts/big-shoulders-stencil-latin.woff2") format("woff2");
+      }
+      :root {
+        --bg: #ebe9e6;
+        --surface: #fcfbfa;
+        --ink: #181613;
+        --muted: #5a554f;
+        --line: #d4d1cc;
+        --link: #0e5caf;
+        color-scheme: light dark;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #12100e;
+          --surface: #1e1b19;
+          --ink: #f6f3ed;
+          --muted: #b3ada4;
+          --line: #3a3633;
+          --link: #62bbf5;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 400 17px/1.55 "Archivo", Helvetica, Arial, sans-serif;
+      }
+      main {
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 32px 16px 64px;
+      }
+      .back { display: inline-block; margin-bottom: 24px; color: var(--muted); text-decoration: none; }
+      .back:hover { color: var(--ink); }
+      h1 {
+        font: 800 36px/1 "Big Shoulders Stencil", "Arial Narrow", Arial, sans-serif;
+        text-transform: uppercase;
+        margin: 0 0 8px;
+      }
+      h2 { font-size: 20px; margin: 32px 0 8px; }
+      .updated { color: var(--muted); margin: 0 0 24px; }
+      section { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 4px 20px 16px; margin-top: 16px; }
+      ul { padding-left: 20px; }
+      li { margin: 4px 0; }
+      a { color: var(--link); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a class="back" href="./">← Back to Setstamp</a>
+      <h1>Privacy</h1>
+      <p class="updated">Last updated 24 November 2026</p>
+
+      <p>
+        Setstamp is a free lifting log. It has no ads and no analytics, and your data is never sold or shared for
+        marketing. This page lists what the app stores and where.
+      </p>
+
+      <section>
+        <h2>What we store</h2>
+        <ul>
+          <li>Your account: email address and a hashed password. If you sign in with Google, we also store the name,
+            email and profile picture URL that Google shares.</li>
+          <li>Your training data: workouts, sets, programs, custom exercises, favorites and settings.</li>
+          <li>Sign-in sessions, so you stay signed in.</li>
+        </ul>
+
+        <h2>Where it lives</h2>
+        <ul>
+          <li>On your device, in the browser's storage, so the app works offline.</li>
+          <li>On <a href="https://www.convex.dev">Convex</a>, the database that syncs your data between devices.
+            It is hosted in Sydney, Australia (ap-southeast-2).</li>
+          <li>The website is served by GitHub Pages. GitHub may log your IP address when you load it.</li>
+        </ul>
+
+        <h2>Email</h2>
+        <p>
+          Account emails (confirming your address, resetting your password, security notices) are sent through a
+          Gmail account run by the developer. We don't send marketing email.
+        </p>
+
+        <h2>Exercise images</h2>
+        <p>
+          Some exercise pictures load from GitHub (raw.githubusercontent.com), so GitHub sees your IP address when they
+          load. You can turn off community images in Settings.
+        </p>
+
+        <h2>Export and delete</h2>
+        <p>
+          In Settings you can export everything as JSON or CSV, delete all your training data, or delete your account.
+          Deleting your account removes your data from our database. When you sign out, you can also clear the copy
+          stored on that device.
+        </p>
+
+        <h2>Contact</h2>
+        <p>
+          Questions or requests: open an issue at
+          <a href="https://github.com/Koala3353/setstamp/issues">github.com/Koala3353/setstamp</a>.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

@@ -209,6 +209,9 @@ export default function Landing() {
               </a>
               , released under the Unlicense.
             </p>
+            <p>
+              <a href={`${import.meta.env.BASE_URL}privacy.html`}>Privacy</a>
+            </p>
           </div>
         </div>
       </footer>
