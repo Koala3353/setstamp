@@ -14,6 +14,7 @@ export const CSV_HEADER = [
   "reps",
   "assist_kg",
   "duration_sec",
+  "distance_m",
   "rpe",
   "notes",
 ] as const;
@@ -84,6 +85,7 @@ export function buildSetsCsv(
         s.reps,
         s.assistKg,
         s.durationSec,
+        s.distanceM,
         s.rpe,
         ex?.notes || null,
       ]),

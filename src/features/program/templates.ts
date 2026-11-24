@@ -6,6 +6,7 @@
 // then by curated commonness, compound-vs-isolation fit, exercises not already used elsewhere
 // in the program, and name. No AI, fully deterministic.
 
+import { isHold, usesReps } from "../../logic/tracking";
 import type { Equipment, Muscle, Pattern } from "../../shared/domain";
 import type { PlannedSlot, ProgramData, ProgramDay } from "../../shared/sync";
 import { canUseEquipment, type ExerciseInfo } from "../coverage/coverage";
@@ -226,7 +227,7 @@ export function buildFromTemplate(
       inDay.add(ex.exId);
       dayPicks.push(ex);
       used.add(ex.exId);
-      const hold = ex.tracking === "duration";
+      const hold = isHold(ex.tracking);
       slots.push({
         slotId: makeId(),
         exId: ex.exId,
@@ -259,14 +260,16 @@ export function buildFromTemplate(
 
 /** A blank slot for an exercise the user picked. */
 export function newSlot(ex: Pick<ExerciseInfo, "exId" | "tracking" | "mechanic">, slotId: string): PlannedSlot {
-  const hold = ex.tracking === "duration";
+  const hold = isHold(ex.tracking);
+  // Carries and timed cardio have no rep or hold target: the slot just plans the sets.
+  const noTarget = !hold && !usesReps(ex.tracking);
   const compound = ex.mechanic === "compound";
   return {
     slotId,
     exId: ex.exId,
     sets: 3,
-    repMin: hold ? null : compound ? 6 : 10,
-    repMax: hold ? null : compound ? 10 : 15,
+    repMin: hold || noTarget ? null : compound ? 6 : 10,
+    repMax: hold || noTarget ? null : compound ? 10 : 15,
     durationSec: hold ? 30 : null,
     restSec: compound ? 150 : 90,
     warmup: false,

@@ -1,0 +1,80 @@
+/* Fixing and deleting logged data: SessionDetail set rows and sheets, custom-exercise delete. */
+
+.hist-edit__notes.ui-field__input {
+  height: auto;
+  min-height: 96px;
+  padding: var(--s-2) var(--s-3);
+  resize: vertical;
+  font: inherit;
+}
+
+/* A logged set you can tap to fix: same row as the read-only list, with a full-row target. */
+.hist-set {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 44px;
+  padding: var(--s-2) 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+.hist-set:active {
+  transform: scale(0.99);
+}
+.hist-set:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--r-xs);
+}
+.setlist__row:has(> .hist-set) {
+  padding: 0;
+}
+
+.hist-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.hist-delete.ui-btn {
+  justify-self: center;
+  color: var(--danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hist-set {
+    transition: none;
+  }
+  .hist-set:active {
+    transform: none;
+  }
+}
+
+/* Custom exercise delete (CustomExerciseSheet, edit mode) */
+.excustom__delete.ui-btn {
+  justify-self: center;
+  margin-top: var(--s-4);
+  color: var(--danger);
+}
+.excustom__confirm {
+  display: grid;
+  gap: var(--s-2);
+  margin-top: var(--s-4);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--seam);
+}
+.excustom__confirm-title {
+  margin: 0;
+  font-weight: 700;
+}
+.excustom__confirm .small {
+  margin: 0;
+}

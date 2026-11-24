@@ -63,5 +63,11 @@ export function describePR(pr: PR, unit: Unit): string {
       return `Longest hold: ${pr.value}s (was ${pr.previous}s)`;
     case "session_volume":
       return `Best session volume: ${total(pr.value)} (was ${total(pr.previous)})`;
+    case "longest_at_load":
+      return `Longest hold at ${w(pr.atKg ?? 0)}: ${pr.value}s (was ${pr.previous}s)`;
+    case "heaviest_hold":
+      return `Heaviest hold: ${w(pr.value)} for ${pr.atSec ?? 0}s (was ${w(pr.previous)})`;
+    case "load_distance":
+      return `Best load × distance: ${fmtInt(kgToDisplay(pr.value, unit))} ${unit}·m (was ${fmtInt(kgToDisplay(pr.previous, unit))} ${unit}·m)`;
   }
 }

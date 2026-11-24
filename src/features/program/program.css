@@ -179,3 +179,21 @@
   padding-top: var(--s-4);
   border-top: 1px solid var(--seam);
 }
+
+/* Superset rows: a continuous rail down the left edge of the grouped rows; stations read A1, A2. */
+.prog-slot.is-ss {
+  box-shadow: inset 3px 0 0 var(--seam-strong);
+}
+
+/* ---------- Archive / delete a program ---------- */
+.prog-manage {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+}
+.prog-manage__delete.ui-btn {
+  color: var(--danger);
+}
+.prog-menu {
+  padding-bottom: var(--s-2);
+}

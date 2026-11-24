@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import type { ProgramData } from "../../shared/sync";
 import { FIXTURE } from "../coverage/fixture";
 import { applyCompletion, moveToDay, nextDay, reconcileCompletions, replaceDays, skipDay, timeline } from "./schedule";
-import { buildFromTemplate, isNearDuplicate, pickForSpec, TEMPLATES } from "./templates";
+import { buildFromTemplate, isNearDuplicate, newSlot, pickForSpec, TEMPLATES } from "./templates";
+import { describeSlot } from "./format";
 
 let n = 0;
 const id = () => `id${++n}`;
@@ -115,5 +116,15 @@ describe("rolling schedule", () => {
     const t = timeline(p);
     expect(t.map((x) => x.action)).toEqual(["completed", "skipped"]);
     expect(t[1]!.dayName).toBe("Removed day");
+  });
+});
+
+describe("slots for the new tracking types", () => {
+  it("a weighted hold gets a hold target; a carry gets no rep target", () => {
+    const hold = newSlot({ exId: "ex_kb_rack_hold", tracking: "weight_duration", mechanic: null }, "a");
+    expect([hold.durationSec, hold.repMin]).toEqual([30, null]);
+    const carry = newSlot({ exId: "ex_farmers_walk", tracking: "weight_distance", mechanic: "compound" }, "b");
+    expect([carry.durationSec, carry.repMin, carry.repMax]).toEqual([null, null, null]);
+    expect(describeSlot(carry, 90).startsWith("3 sets")).toBe(true);
   });
 });

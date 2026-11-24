@@ -70,6 +70,7 @@ function checkLimits(table: SyncTable, data: Record<string, unknown>): string | 
       if (!inRange(d.order, 0, 10_000)) return "order out of range";
       if (!inRange(d.restSec, 0, 3600)) return "restSec out of range";
       if (!isId(d.sessionCid)) return "invalid sessionCid";
+      if (d.groupId != null && !isId(d.groupId)) return "invalid groupId";
       return null;
     case "sessions":
       if (!inRange(d.bodyweightKg, 0, 700)) return "bodyweightKg out of range";
@@ -93,6 +94,7 @@ function checkLimits(table: SyncTable, data: Record<string, unknown>): string | 
           if (!inRange(s.sets, 0, 100)) return "slot sets out of range";
           if (!inRange(s.repMin, 0, 1000) || !inRange(s.repMax, 0, 1000)) return "slot reps out of range";
           if (!inRange(s.restSec, 0, 3600) || !inRange(s.durationSec, 0, 86_400)) return "slot time out of range";
+          if (s.groupId != null && !isId(s.groupId)) return "invalid slot groupId";
         }
       }
       return null;

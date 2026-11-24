@@ -7,8 +7,12 @@ export type ExInfo = { exId: string; name: string; tracking: Tracking; equipment
 
 export type ExLookup = (exId: string) => ExInfo;
 
+// A custom exercise ("cx_" + uuid) that isn't found was deleted (its tombstone carries no name).
+// Its logged sets stay in history under this honest label rather than a uuid.
 const pretty = (exId: string) =>
-  exId
+  exId.startsWith("cx_")
+    ? "Deleted exercise"
+    : exId
     .replace(/^(ex|cx)_/, "")
     .replace(/_/g, " ")
     .replace(/^\w/, (c) => c.toUpperCase());

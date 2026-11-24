@@ -5,7 +5,7 @@ import { IconArrow } from "./ArrowIcon";
 import type { Muscle } from "../../shared/domain";
 import type { PlannedSlot, ProgramData, ProgramDay, SettingsData } from "../../shared/sync";
 import { newCid } from "../../sync";
-import { Button, Card, IconButton, IconChevronLeft, IconPlus, ListGroup, ListRow, Stat, StatGrid, TextField } from "../../ui";
+import { Button, Card, IconButton, IconChevronLeft, IconPlus, ListGroup, ListRow, Stat, StatGrid, TextField, useToast } from "../../ui";
 import { Section } from "../../app/Shell";
 import { goBack } from "../../app/router";
 import { ExercisePicker } from "../exercises/ExercisePicker";
@@ -14,8 +14,10 @@ import { describeSlot, estimateDayMinutes, type ExerciseIndexLike } from "./form
 import { SlotSheet } from "./SlotSheet";
 import { newSlot } from "./templates";
 import { replaceDays } from "./schedule";
+import { linkWithNext, moveItem, removeAt, supersetRuns, unlink } from "../../logic/superset";
+import { cx } from "../../ui";
 
-type PickerState = { kind: "add" } | { kind: "swap"; slotId: string } | { kind: "alternate"; slotId: string } | null;
+type PickerState = { kind: "add" } | { kind: "superset" } | { kind: "swap"; slotId: string } | { kind: "alternate"; slotId: string } | null;
 
 export function DayEditor({
   programCid,
@@ -41,20 +43,22 @@ export function DayEditor({
 
   const saveDay = (next: ProgramDay) => write(programCid, replaceDays(program, program.days.map((d) => (d.dayId === next.dayId ? next : d))));
   const saveSlots = (slots: PlannedSlot[]) => saveDay({ ...day, slots });
+  const toast = useToast();
 
-  const addExercises = (ids: string[]) => {
+  const addExercises = (ids: string[], asSuperset = false) => {
+    const groupId = asSuperset && ids.length >= 2 ? newCid() : null;
     const add = ids
       .map((id) => lookup(id))
       .filter((e): e is NonNullable<typeof e> => !!e)
-      .map((e) => newSlot(e, newCid()));
+      .map((e) => (groupId ? { ...newSlot(e, newCid()), groupId } : newSlot(e, newCid())));
     if (add.length) void saveSlots([...day.slots, ...add]);
   };
+  // Supersets: adjacent slots sharing a groupId. Moving never splits one (see src/logic/superset).
+  const runs = supersetRuns(day.slots);
+  const runAt = (i: number) => runs.find((r) => i >= r.start && i <= r.end) ?? null;
   const move = (i: number, by: -1 | 1) => {
-    const j = i + by;
-    if (j < 0 || j >= day.slots.length) return;
-    const slots = [...day.slots];
-    [slots[i], slots[j]] = [slots[j]!, slots[i]!];
-    void saveSlots(slots);
+    const next = moveItem(day.slots, i, by);
+    if (next) void saveSlots(next);
   };
 
   const minutes = estimateDayMinutes(day, settings.defaultRestSec);
@@ -65,7 +69,9 @@ export function DayEditor({
     return [...out];
   }, [day.slots, lookup]);
   const editingSlot = day.slots.find((s) => s.slotId === editing) ?? null;
-  const swapFor = picker && picker.kind !== "add" ? day.slots.find((s) => s.slotId === picker.slotId)?.exId : undefined;
+  const editingIdx = day.slots.findIndex((s) => s.slotId === editing);
+  const swapFor = picker && (picker.kind === "swap" || picker.kind === "alternate") ? day.slots.find((s) => s.slotId === picker.slotId)?.exId : undefined;
+  const adding = picker?.kind === "add" || picker?.kind === "superset";
 
   return (
     <div className="screen">
@@ -111,17 +117,24 @@ export function DayEditor({
           <ListGroup label="Planned exercises" className="prog-list">
             {day.slots.map((s, i) => {
               const name = lookup(s.exId)?.name ?? s.exId;
+              const run = runAt(i);
+              // Supersets read A1, A2… like a written program; ungrouped slots keep their number.
+              const station = run ? `${run.label}${i - run.start + 1}` : String(i + 1);
+              const meta = describeSlot(s, settings.defaultRestSec);
               return (
-                <li key={s.slotId} className="prog-slot">
+                <li
+                  key={s.slotId}
+                  className={cx("prog-slot", run && "is-ss", run && i === run.start && "is-ss-first", run && i === run.end && "is-ss-last")}
+                >
                   <ListRow
-                    leading={<span className="prog-station num">{i + 1}</span>}
+                    leading={<span className="prog-station num">{station}</span>}
                     title={name}
-                    meta={describeSlot(s, settings.defaultRestSec)}
+                    meta={run ? `Superset ${run.label} · ${meta}` : meta}
                     onClick={() => setEditing(s.slotId)}
                   />
                   <span className="prog-slot__order">
-                    <IconButton label={`Move ${name} up`} icon={<IconArrow dir="up" />} disabled={i === 0} onClick={() => move(i, -1)} />
-                    <IconButton label={`Move ${name} down`} icon={<IconArrow dir="down" />} disabled={i === day.slots.length - 1} onClick={() => move(i, 1)} />
+                    <IconButton label={`Move ${name} up`} icon={<IconArrow dir="up" />} disabled={!moveItem(day.slots, i, -1)} onClick={() => move(i, -1)} />
+                    <IconButton label={`Move ${name} down`} icon={<IconArrow dir="down" />} disabled={!moveItem(day.slots, i, 1)} onClick={() => move(i, 1)} />
                   </span>
                 </li>
               );
@@ -130,6 +143,9 @@ export function DayEditor({
         )}
         <Button variant="secondary" block icon={<IconPlus size={20} />} onClick={() => setPicker({ kind: "add" })}>
           Add exercises
+        </Button>
+        <Button variant="ghost" block onClick={() => setPicker({ kind: "superset" })}>
+          Add superset
         </Button>
       </Section>
 
@@ -155,8 +171,18 @@ export function DayEditor({
         onChange={(next) => void saveSlots(day.slots.map((s) => (s.slotId === next.slotId ? next : s)))}
         onRemove={(slotId) => {
           setEditing(null);
-          void saveSlots(day.slots.filter((s) => s.slotId !== slotId));
+          const before = program;
+          const name = lookup(day.slots.find((s) => s.slotId === slotId)?.exId ?? "")?.name ?? "Exercise";
+          void saveSlots(removeAt(day.slots, day.slots.findIndex((s) => s.slotId === slotId)));
+          toast.show({ message: `Removed ${name} from ${day.name}`, action: { label: "Undo", onAction: () => void write(programCid, before) } });
         }}
+        superset={editingIdx >= 0 ? (runAt(editingIdx)?.label ?? null) : null}
+        onSupersetNext={
+          editingIdx >= 0 && editingIdx < day.slots.length - 1 && (runAt(editingIdx) === null || runAt(editingIdx)!.end === editingIdx)
+            ? () => void saveSlots(linkWithNext(day.slots, editingIdx, newCid()))
+            : undefined
+        }
+        onLeaveSuperset={editingIdx >= 0 && runAt(editingIdx) ? () => void saveSlots(unlink(day.slots, editingIdx)) : undefined}
         onSwap={(slotId) => {
           setEditing(null);
           setPicker({ kind: "swap", slotId });
@@ -167,20 +193,28 @@ export function DayEditor({
       <ExercisePicker
         open={picker !== null}
         onClose={() => setPicker(null)}
-        title={picker?.kind === "add" ? `Add to ${day.name}` : picker?.kind === "alternate" ? "Add an alternate" : "Swap exercise"}
-        multi={picker?.kind === "add"}
-        mode={picker?.kind === "add" ? "add" : "substitute"}
+        title={
+          picker?.kind === "add"
+            ? `Add to ${day.name}`
+            : picker?.kind === "superset"
+              ? "Pick exercises for a superset"
+              : picker?.kind === "alternate"
+                ? "Add an alternate"
+                : "Swap exercise"
+        }
+        multi={adding}
+        mode={adding ? "add" : "substitute"}
         substituteFor={swapFor}
         sessionMuscles={sessionMuscles}
         onPickMany={(ids: string[]) => {
-          addExercises(ids);
+          addExercises(ids, picker?.kind === "superset");
           setPicker(null);
         }}
         onPick={(exId: string) => {
           const p = picker;
           setPicker(null);
           if (!p) return;
-          if (p.kind === "add") return addExercises([exId]);
+          if (p.kind === "add" || p.kind === "superset") return addExercises([exId]);
           void saveSlots(
             day.slots.map((s) => {
               if (s.slotId !== p.slotId) return s;

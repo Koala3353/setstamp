@@ -110,6 +110,8 @@ export const vPlannedSlot = v.object({
   warmup: v.boolean(),
   notes: v.string(),
   alternates: v.array(v.string()),
+  // Optional so rows written before supersets existed still validate.
+  groupId: v.optional(nullable(v.string())),
 });
 
 export const vProgramDay = v.object({ dayId: v.string(), name: v.string(), slots: v.array(vPlannedSlot) });
@@ -149,6 +151,8 @@ export const vSessionExerciseData = v.object({
   substitutedFromExId: nullable(v.string()),
   notes: v.string(),
   restSec: nullable(v.number()),
+  // Optional so rows written before supersets existed still validate.
+  groupId: v.optional(nullable(v.string())),
 });
 
 export const vSetData = v.object({

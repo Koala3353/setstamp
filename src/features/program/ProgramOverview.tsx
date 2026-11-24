@@ -14,6 +14,7 @@ import { CoveragePanel } from "../coverage/CoveragePanel";
 import { startProgramDay } from "../workout/ops";
 import { useExerciseLookup } from "../workout/exerciseInfo";
 import type { ExerciseIndexLike } from "./format";
+import { ActiveProgramActions } from "./ProgramManage";
 import { moveToDay, nextDay, replaceDays, skipDay, timeline } from "./schedule";
 
 const dateFmt = new Intl.DateTimeFormat(undefined, { weekday: "short", day: "numeric", month: "short" });
@@ -210,8 +211,12 @@ export function ProgramOverview({
               const ses = t.sessionCid ? sessionById.get(t.sessionCid) : null;
               const done = t.sessionCid ? doneSetsBySession.get(t.sessionCid) ?? 0 : 0;
               const planned = plannedSets(t.dayId);
+              // A completed day whose workout was later deleted: the log entry stays, the link goes.
+              const gone = t.action === "completed" && !!t.sessionCid && !ses;
               const meta =
-                t.action === "completed"
+                gone
+                  ? "Completed · workout since deleted"
+                  : t.action === "completed"
                   ? `Completed ${done} of ${planned ?? "?"} planned working sets${ses ? ` · ${ses.name}` : ""}`
                   : t.action === "skipped"
                     ? "Skipped · plan unchanged"
@@ -222,7 +227,7 @@ export function ProgramOverview({
                     title={`${dateFmt.format(new Date(t.at))} · ${t.dayName}`}
                     meta={meta}
                     trailing={<Chip tone={t.action === "completed" ? "ok" : "neutral"}>{t.action === "completed" ? "Done" : t.action === "skipped" ? "Skipped" : "Moved"}</Chip>}
-                    href={t.action === "completed" && t.sessionCid ? `#/progress?session=${encodeURIComponent(t.sessionCid)}` : undefined}
+                    href={t.action === "completed" && t.sessionCid && !gone ? `#/progress?session=${encodeURIComponent(t.sessionCid)}` : undefined}
                   />
                 </li>
               );
@@ -234,6 +239,7 @@ export function ProgramOverview({
       <Button variant="secondary" block onClick={onNewProgram}>
         Switch or start a new program
       </Button>
+      <ActiveProgramActions programCid={programCid} program={program} />
 
       <Sheet open={chooseDay} onClose={() => setChooseDay(false)} title="Pick a day" description="It moves to the front of the queue. The plan stays the same.">
         <ListGroup label="Choose a day">

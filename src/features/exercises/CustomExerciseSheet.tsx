@@ -15,9 +15,12 @@ import {
   type Tracking,
 } from "../../shared/domain";
 import type { CustomExerciseData } from "../../shared/sync";
-import { useRow, useSyncStore } from "../../sync/react";
+import { useRow, useRows, useSyncStore } from "../../sync/react";
+import { goBack } from "../../app/router";
+import { deleteCustomExercise, restoreRows } from "../workout/ops";
+import "../history/history.css";
 import { Button, ChipRow, FilterChip, Segmented, Sheet, Switch, TextField, useToast } from "../../ui";
-import { PATTERN_LABEL, TRACKING_LABEL } from "./labels";
+import { PATTERN_LABEL, TRACKING_HINT, TRACKING_LABEL } from "./labels";
 import { customExId } from "./model";
 import { useExerciseSearch } from "./useExerciseSearch";
 
@@ -30,6 +33,8 @@ export type CustomExerciseSheetProps = {
   onSaved?: (exId: string) => void;
   /** User chose an existing exercise from the duplicate suggestions. */
   onUseExisting?: (exId: string) => void;
+  /** After a delete (edit mode). Default: close and go back, since the exercise's page is gone. */
+  onDeleted?: () => void;
 };
 
 type Draft = {
@@ -58,7 +63,7 @@ const blank = (name = ""): Draft => ({
 
 const toggleIn = <T,>(list: T[], v: T, on: boolean) => (on ? (list.includes(v) ? list : [...list, v]) : list.filter((x) => x !== v));
 
-export function CustomExerciseSheet({ open, onClose, editCid, initialName, onSaved, onUseExisting }: CustomExerciseSheetProps) {
+export function CustomExerciseSheet({ open, onClose, editCid, initialName, onSaved, onUseExisting, onDeleted }: CustomExerciseSheetProps) {
   const store = useSyncStore();
   const toast = useToast();
   const existing = useRow("customExercises", editCid ?? null);
@@ -69,6 +74,7 @@ export function CustomExerciseSheet({ open, onClose, editCid, initialName, onSav
   const [confirmDup, setConfirmDup] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   // Reset when (re)opened.
   useEffect(() => {
@@ -76,6 +82,7 @@ export function CustomExerciseSheet({ open, onClose, editCid, initialName, onSav
     const d = existing?.data;
     setDraft(d ? { ...d, pattern: d.pattern } : blank(initialName ?? ""));
     setConfirmDup(false);
+    setConfirmDelete(false);
     setError(null);
   }, [open]);
 
@@ -266,6 +273,7 @@ export function CustomExerciseSheet({ open, onClose, editCid, initialName, onSav
               </FilterChip>
             ))}
           </ChipRow>
+          <p className="small muted">{TRACKING_HINT[draft.tracking]}</p>
         </fieldset>
 
         <Switch
@@ -281,6 +289,66 @@ export function CustomExerciseSheet({ open, onClose, editCid, initialName, onSav
           </p>
         )}
       </form>
+      {editCid && existing?.data && (
+        <DeleteCustom
+          exId={existing.data.exId}
+          name={existing.data.name}
+          confirming={confirmDelete}
+          onAsk={setConfirmDelete}
+          onDelete={async () => {
+            if (!store) return;
+            const snap = await deleteCustomExercise(store, editCid);
+            toast.show({ message: `Deleted ${existing.data!.name}`, duration: 6000, action: { label: "Undo", onAction: () => void restoreRows(store, snap) } });
+            onClose();
+            if (onDeleted) onDeleted();
+            else goBack("/exercises");
+          }}
+        />
+      )}
     </Sheet>
+  );
+}
+
+/** Delete a custom exercise, after saying plainly what stays. */
+function DeleteCustom({
+  exId,
+  name,
+  confirming,
+  onAsk,
+  onDelete,
+}: {
+  exId: string;
+  name: string;
+  confirming: boolean;
+  onAsk: (on: boolean) => void;
+  onDelete: () => Promise<void>;
+}) {
+  const sets = useRows("sets");
+  const programs = useRows("programs");
+  const logged = sets.filter((r) => r.data?.exId === exId && r.data.done).length;
+  const slots = programs.reduce((n, p) => n + (p.data?.days.reduce((m, d) => m + d.slots.filter((s) => s.exId === exId).length, 0) ?? 0), 0);
+  if (!confirming) {
+    return (
+      <Button variant="ghost" className="excustom__delete" onClick={() => onAsk(true)}>
+        Delete exercise
+      </Button>
+    );
+  }
+  return (
+    <div className="excustom__confirm" role="group" aria-label={`Delete ${name}?`}>
+      <p className="excustom__confirm-title">Delete {name}?</p>
+      <p className="small muted">
+        {logged > 0 ? `Your ${logged} logged ${logged === 1 ? "set stays" : "sets stay"} in history, shown as "Deleted exercise". ` : "Nothing is logged with it yet. "}
+        {slots > 0 ? `It's in ${slots} program ${slots === 1 ? "slot" : "slots"}; swap ${slots === 1 ? "it" : "them"} for another exercise.` : ""}
+      </p>
+      <div className="sheet-actions">
+        <Button variant="ghost" onClick={() => onAsk(false)}>
+          Cancel
+        </Button>
+        <Button variant="danger" onClick={() => void onDelete()}>
+          Delete
+        </Button>
+      </div>
+    </div>
   );
 }

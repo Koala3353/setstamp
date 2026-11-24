@@ -2,10 +2,13 @@
 import { useState } from "react";
 import { cx } from "../../ui";
 import type { PlannedSlot, SetData, SettingsData } from "../../shared/sync";
-import { Button, IconButton, IconCheck, IconMore, IconPlus, Sheet, TextField } from "../../ui";
+import { Button, IconButton, IconCheck, IconInfo, IconMore, IconPlus, Sheet, TextField } from "../../ui";
+import { navigate, pathFor } from "../../app/router";
 import { formatLast, type PreviousPerformance } from "../../logic/history";
 import type { ProgressionHint } from "../../logic/progression";
-import { displayWeight, fmtNum, kgToDisplay } from "../../logic/units";
+import { fmtNum } from "../../logic/units";
+import { isLoaded } from "../../logic/tracking";
+import { setCells, spokenSet } from "./setCells";
 import type { ExInfo } from "./exerciseInfo";
 
 export type SetRow = { cid: string; data: SetData };
@@ -23,31 +26,11 @@ export type CardActions = {
   remove: () => void;
   setNotes: (notes: string) => void;
   setRest: (sec: number | null) => void;
+  /** Present when there is a next exercise to pair with. */
+  supersetNext?: () => void;
+  /** Present when this exercise is in a superset. */
+  leaveSuperset?: () => void;
 };
-
-function cell(s: SetData, info: ExInfo, settings: SettingsData): { main: string; sub: string } {
-  const unit = settings.unit;
-  switch (info.tracking) {
-    case "duration":
-    case "distance_time":
-      return { main: s.durationSec !== null ? String(s.durationSec) : "–", sub: "s" };
-    case "assisted_reps":
-      return { main: s.assistKg === null ? "–" : `−${fmtNum(kgToDisplay(s.assistKg, unit))}`, sub: `${unit} assist` };
-    case "bodyweight_reps": {
-      const w = displayWeight(s, unit);
-      return w ? { main: `+${fmtNum(w)}`, sub: unit } : { main: "BW", sub: "" };
-    }
-    default:
-      return { main: fmtNum(displayWeight(s, unit)), sub: unit };
-  }
-}
-
-/** Screen-reader wording for a set row: "135 lb, 8 reps" rather than "135×8" or "–×8". */
-function spoken(c: { main: string; sub: string }, reps: number | null, timed: boolean): string {
-  if (timed) return c.main === "–" ? "no time yet" : `${c.main} seconds`;
-  const load = c.main === "–" ? (c.sub.includes("assist") ? "no assistance set" : "no weight yet") : c.main === "BW" ? "bodyweight" : `${c.main} ${c.sub}`;
-  return `${load}, ${reps === null ? "no reps" : reps === 1 ? "1 rep" : `${reps} reps`}`;
-}
 
 export function ExerciseCard({
   info,
@@ -60,6 +43,7 @@ export function ExerciseCard({
   hint,
   settings,
   nextCid,
+  superset,
   actions,
 }: {
   info: ExInfo;
@@ -73,6 +57,8 @@ export function ExerciseCard({
   settings: SettingsData;
   /** The one set the whole session should log next: its ✓ is the screen's orange action. */
   nextCid: string | null;
+  /** Label of the superset this card is in ("A"), with its round rest in seconds. */
+  superset: { label: string; restSec: number } | null;
   actions: CardActions;
 }) {
   const [menu, setMenu] = useState(false);
@@ -83,11 +69,13 @@ export function ExerciseCard({
   const working = sets.filter((r) => r.data.kind !== "warmup");
   const workingDone = working.filter((r) => r.data.done).length;
   const complete = working.length > 0 && workingDone === working.length;
-  const timed = info.tracking === "duration" || info.tracking === "distance_time";
   let workingNo = 0;
   const last = prev ? formatLast(prev.sets, info.tracking, settings.unit) : "";
   const target = slot
-    ? `${slot.sets} × ${slot.durationSec ? `${slot.durationSec}s` : slot.repMin !== null && slot.repMax !== null && slot.repMin !== slot.repMax ? `${slot.repMin}–${slot.repMax}` : (slot.repMax ?? slot.repMin ?? "?")}`
+    ? (() => {
+        const t = slot.durationSec ? `${slot.durationSec}s` : slot.repMin != null && slot.repMax != null && slot.repMin !== slot.repMax ? `${slot.repMin}–${slot.repMax}` : (slot.repMax ?? slot.repMin);
+        return t == null ? `${slot.sets} ${slot.sets === 1 ? "set" : "sets"}` : `${slot.sets} × ${t}`;
+      })()
     : null;
 
   const close = () => {
@@ -111,6 +99,7 @@ export function ExerciseCard({
             {workingDone}/{working.length}
           </span>
         )}
+        <IconButton label={`About ${info.name}`} icon={<IconInfo />} onClick={() => navigate(pathFor("exercise", { exId: info.exId }))} />
         <IconButton
           label={`More for ${info.name}`}
           icon={<IconMore />}
@@ -165,30 +154,28 @@ export function ExerciseCard({
           const s = row.data.done ? row.data : actions.preview(row);
           const warm = s.kind === "warmup";
           const label = warm ? "W" : String(++workingNo);
-          const c = cell(s, info, settings);
-          const desc = `${warm ? "Warm-up" : `Set ${label}`}: ${spoken(c, s.reps, timed)}`;
+          const cells = setCells(s, info.tracking, settings.unit);
+          const desc = `${warm ? "Warm-up" : `Set ${label}`}: ${spokenSet(cells)}`;
           const isNext = !s.done && row.cid === nextCid;
           return (
-            <li key={row.cid} className={cx("wk-set", s.done && "is-done", warm && "is-warm", isNext && "is-next")}>
+            <li key={row.cid} data-set={row.cid} className={cx("wk-set", s.done && "is-done", warm && "is-warm", isNext && "is-next")}>
               <span className="wk-set__badge num" aria-hidden="true">
                 {label}
               </span>
               <button type="button" className="wk-set__values" onClick={() => actions.editSet(row)} aria-label={`Edit ${desc}`}>
-                {!timed && (
-                  <span className="wk-set__val">
-                    <span className="num">{c.main}</span>
-                    <small>{c.sub}</small>
+                {cells.map((c, k) => (
+                  <span key={k} className="wk-set__pair">
+                    {k > 0 && (
+                      <span className="wk-set__x" aria-hidden="true">
+                        ×
+                      </span>
+                    )}
+                    <span className="wk-set__val">
+                      <span className="num">{c.main}</span>
+                      {c.sub && <small>{c.sub}</small>}
+                    </span>
                   </span>
-                )}
-                {!timed && (
-                  <span className="wk-set__x" aria-hidden="true">
-                    ×
-                  </span>
-                )}
-                <span className="wk-set__val">
-                  <span className="num">{timed ? c.main : (s.reps ?? "–")}</span>
-                  <small>{timed ? "s" : "reps"}</small>
-                </span>
+                ))}
               </button>
               <button
                 type="button"
@@ -218,7 +205,13 @@ export function ExerciseCard({
           </label>
           <TextField
             label="Rest after each set (seconds)"
-            hint={restSec === null ? `Uses your default, ${settings.defaultRestSec} s` : undefined}
+            hint={
+              superset
+                ? `In superset ${superset.label}, rest starts after each round and lasts the longest rest in the group (now ${superset.restSec} s).`
+                : restSec === null
+                  ? `Uses your default, ${settings.defaultRestSec} s`
+                  : undefined
+            }
             type="text"
             inputMode="numeric"
             defaultValue={restSec ?? ""}
@@ -236,9 +229,15 @@ export function ExerciseCard({
               Move down
             </Button>
             <Button onClick={act(actions.substitute)}>Substitute</Button>
-            <Button onClick={act(actions.addWarmups)} disabled={info.tracking !== "weight_reps"}>
+            <Button onClick={act(actions.addWarmups)} disabled={!isLoaded(info.tracking)}>
               Add warm-ups
             </Button>
+            {superset ? (
+              <Button onClick={act(actions.leaveSuperset)} disabled={!actions.leaveSuperset}>
+                Remove from superset
+              </Button>
+            ) : null}
+            {actions.supersetNext ? <Button onClick={act(actions.supersetNext)}>Superset with next</Button> : null}
           </div>
           <Button variant="danger" block className="wk-menu__remove" onClick={act(actions.remove)}>
             Remove exercise

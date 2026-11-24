@@ -477,13 +477,17 @@ function deriveTracking(name: string, cands: Candidate[], pattern: Pattern, equi
     if (/battle rope|battling rope/.test(n)) return "duration";
     return DISTANCE_CARDIO.test(n) || equipment.includes("machine") ? "distance_time" : "bodyweight_reps";
   }
-  if (pattern === "carry") return "distance_time";
+  const loaded = equipment.some((e) => LOAD_EQ.has(e) && e !== "band");
+  // Carries move a load over distance; a bear crawl (bodyweight only) is just distance and time.
+  // "other" covers sleds, yokes and sandbags here.
+  if (pattern === "carry") return loaded || equipment.includes("other") || C.WEIGHTED_BODYWEIGHT_NAME.test(n) ? "weight_distance" : "distance_time";
   if (pattern === "mobility") return DYNAMIC_MOBILITY.test(n) && !isStatic ? "bodyweight_reps" : "duration";
   if (C.ASSISTED_NAME.test(n) && !C.BAND_ASSISTED_NAME.test(n)) return "assisted_reps";
-  if (/\bholds?\b/.test(n)) return "duration";
-  if (!C.NEVER_DURATION.test(n) && (C.DURATION_NAME.test(n) || (rep ? rep.force === "static" : isStatic))) return "duration";
+  // Holds: with a real implement (or "weighted" / plates in the name) the load is logged too.
+  const hold = loaded || C.WEIGHTED_BODYWEIGHT_NAME.test(n) ? "weight_duration" : "duration";
+  if (/\bholds?\b/.test(n)) return hold;
+  if (!C.NEVER_DURATION.test(n) && (C.DURATION_NAME.test(n) || (rep ? rep.force === "static" : isStatic))) return hold;
   if (C.WEIGHTED_BODYWEIGHT_NAME.test(n)) return "weight_reps";
-  const loaded = equipment.some((e) => LOAD_EQ.has(e) && e !== "band");
   if (C.BODYWEIGHT_MOVE.test(n) && !loaded) return "bodyweight_reps";
   if (rep?.isBodyweight === true) return "bodyweight_reps";
   if (equipment.every((e) => BODYWEIGHT_EQ.has(e)) && !equipment.includes("other")) return "bodyweight_reps";

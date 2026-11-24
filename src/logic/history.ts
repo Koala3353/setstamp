@@ -37,9 +37,24 @@ export function previousPerformance(
   return best;
 }
 
-/** "100×8", "BW×12", "−20×6" (assist), "45s". */
-export function formatSetShort(s: Pick<SetData, "weightKg" | "entered" | "reps" | "assistKg" | "durationSec">, tracking: Tracking, unit: Unit): string {
-  if (tracking === "duration" || tracking === "distance_time") return s.durationSec !== null ? `${s.durationSec}s` : "–";
+/** "100×8", "BW×12", "−20×6" (assist), "45s", "20×45s" (load × time), "40×30m" (load × distance), "400m 95s". */
+export function formatSetShort(
+  s: Pick<SetData, "weightKg" | "entered" | "reps" | "assistKg" | "durationSec"> & Partial<Pick<SetData, "distanceM">>,
+  tracking: Tracking,
+  unit: Unit,
+): string {
+  const sec = s.durationSec !== null ? `${s.durationSec}s` : "–";
+  const m = s.distanceM != null ? `${fmtNum(s.distanceM)}m` : "–";
+  switch (tracking) {
+    case "duration":
+      return sec;
+    case "distance_time":
+      return s.distanceM != null ? `${m} ${sec}` : sec;
+    case "weight_duration":
+      return `${fmtNum(displayWeight(s, unit))}×${sec}`;
+    case "weight_distance":
+      return `${fmtNum(displayWeight(s, unit))}×${m}`;
+  }
   const reps = s.reps ?? "–";
   if (tracking === "assisted_reps") return `${s.assistKg === null ? "–" : `−${fmtNum(kgToDisplay(s.assistKg, unit))}`}×${reps}`;
   const w = displayWeight(s, unit);

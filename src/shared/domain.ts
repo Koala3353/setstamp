@@ -121,8 +121,20 @@ export const PATTERNS = [
 ] as const;
 export type Pattern = (typeof PATTERNS)[number];
 
-/** How a set is recorded. assisted_reps stores assistance as positive kg in `assistKg`. */
-export const TRACKING = ["weight_reps", "bodyweight_reps", "assisted_reps", "duration", "distance_time"] as const;
+/**
+ * How a set is recorded. assisted_reps stores assistance as positive kg in `assistKg`.
+ * weight_duration = load held for time (weighted plank, loaded holds); weight_distance = load moved
+ * over distance (carries, sled). Append-only in spirit: stored rows reference these strings.
+ */
+export const TRACKING = [
+  "weight_reps",
+  "bodyweight_reps",
+  "assisted_reps",
+  "duration",
+  "weight_duration",
+  "distance_time",
+  "weight_distance",
+] as const;
 export type Tracking = (typeof TRACKING)[number];
 
 export type SourceRef = {

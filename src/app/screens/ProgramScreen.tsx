@@ -8,6 +8,7 @@ import { updateSettings, useUserSettings } from "../../features/session/hooks";
 import { buildFromTemplate, TEMPLATES, type TemplateDef } from "../../features/program/templates";
 import { DayEditor } from "../../features/program/DayEditor";
 import { ProgramOverview } from "../../features/program/ProgramOverview";
+import { ProgramLists } from "../../features/program/ProgramManage";
 import { useExerciseIndex, usePrograms, useReconcileCompletions, useWriteProgram } from "../../features/program/useProgramData";
 import { EQUIPMENT_LABEL } from "../../shared/domain";
 import "../../features/program/program.css";
@@ -17,7 +18,7 @@ export function ProgramScreen() {
   const store = useSyncStore();
   const settings = useUserSettings();
   const exercises = useExerciseIndex();
-  const { all, active } = usePrograms();
+  const { active } = usePrograms();
   const write = useWriteProgram();
   const [choosing, setChoosing] = useState(false);
   useReconcileCompletions(active);
@@ -55,7 +56,7 @@ export function ProgramScreen() {
 
   return (
     <TemplateChooser
-      others={all.filter((p) => p.cid !== active?.cid)}
+      activeCid={active?.cid ?? null}
       hasActive={!!active}
       onCancel={active ? () => setChoosing(false) : undefined}
       onActivate={async (cid) => {
@@ -83,14 +84,14 @@ export function ProgramScreen() {
 }
 
 function TemplateChooser({
-  others,
+  activeCid,
   hasActive,
   onCancel,
   onActivate,
   onCreate,
   equipmentLabel,
 }: {
-  others: Array<{ cid: string; data: { name: string; days: unknown[] } }>;
+  activeCid: string | null;
   hasActive: boolean;
   onCancel?: () => void;
   onActivate: (cid: string) => Promise<void>;
@@ -115,17 +116,7 @@ function TemplateChooser({
         </Button>
       )}
 
-      {others.length > 0 && (
-        <Section title="Your programs" id="prog-mine">
-          <ListGroup label="Your programs">
-            {others.map((p) => (
-              <li key={p.cid}>
-                <ListRow title={p.data.name} meta={`${p.data.days.length} days · tap to make active`} chevron onClick={() => void onActivate(p.cid)} />
-              </li>
-            ))}
-          </ListGroup>
-        </Section>
-      )}
+      <ProgramLists activeCid={activeCid} onActivate={(cid) => void onActivate(cid)} />
 
       <Section title="Start from a template" id="prog-templates">
         <ListGroup label="Templates">

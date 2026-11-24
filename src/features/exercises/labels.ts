@@ -29,11 +29,24 @@ export const PATTERN_LABEL: Record<Pattern, string> = {
 };
 
 export const TRACKING_LABEL: Record<Tracking, string> = {
-  weight_reps: "Weight × reps",
-  bodyweight_reps: "Bodyweight reps",
+  weight_reps: "Weight and reps",
+  bodyweight_reps: "Reps only",
   assisted_reps: "Assisted reps",
   duration: "Time",
-  distance_time: "Distance + time",
+  weight_duration: "Weight and time",
+  distance_time: "Distance and time",
+  weight_distance: "Weight and distance",
+};
+
+/** One line on what a set records, shown under the tracking choice. */
+export const TRACKING_HINT: Record<Tracking, string> = {
+  weight_reps: "Each set logs a weight and reps. Squats, rows, curls.",
+  bodyweight_reps: "Each set logs reps, with optional added weight. Push-ups, pull-ups.",
+  assisted_reps: "Each set logs reps and how much the machine helps. Assisted pull-ups.",
+  duration: "Each set logs a time. Planks, dead hangs.",
+  weight_duration: "Each set logs a weight and how long you held it. Weighted planks, loaded holds.",
+  distance_time: "Each set logs a time, with optional distance. Rowing, running.",
+  weight_distance: "Each set logs a weight and a distance. Farmer's carries, sled pushes.",
 };
 
 export const GROUP_LABEL: Record<MuscleGroup, string> = {

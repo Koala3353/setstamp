@@ -2,6 +2,7 @@
 import type { Equipment, Tracking, Unit } from "../shared/domain";
 import { fromKg, toKg } from "../shared/domain";
 import { roundDownToLoadable } from "./plates";
+import { isLoaded } from "./tracking";
 import { floorTo, smallestIncrement } from "./units";
 
 export type WarmupSet = { weightKg: number; reps: number };
@@ -16,7 +17,9 @@ export function generateWarmups(
   workKg: number | null,
   opts: { tracking: Tracking; equipment: readonly Equipment[]; barKg: number; platesKg: readonly number[]; unit: Unit },
 ): WarmupSet[] {
-  if (opts.tracking !== "weight_reps" || workKg === null || !(workKg > 0)) return [];
+  // Loaded lifts, holds and carries ramp up the same way; reps are only used by weight_reps
+  // (callers copy the working time / distance onto timed and carried warm-ups).
+  if (!isLoaded(opts.tracking) || workKg === null || !(workKg > 0)) return [];
   const barbell = opts.equipment.some((e) => e === "barbell" || e === "ez_bar" || e === "trap_bar" || e === "smith");
   const out: WarmupSet[] = [];
   const push = (kg: number, reps: number) => {

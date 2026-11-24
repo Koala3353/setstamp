@@ -174,6 +174,15 @@ export const IconDumbbell = (p: IconProps) => (
   </Svg>
 );
 
+/** Info: how-to and details for an exercise. */
+export const IconInfo = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 11v6" />
+    <circle cx="12" cy="7.5" r="1.1" fill="currentColor" stroke="none" />
+  </Svg>
+);
+
 export const IconMore = (p: IconProps) => (
   <Svg {...p}>
     <circle cx="5.5" cy="12" r="1.2" fill="currentColor" />

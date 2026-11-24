@@ -56,6 +56,8 @@ export type PlannedSlot = {
   warmup: boolean; // suggest warm-up sets for this slot
   notes: string;
   alternates: string[]; // exIds the user pre-approved as substitutes
+  /** Superset: adjacent slots sharing a groupId are done in rounds. Missing (older rows) = null. */
+  groupId?: string | null;
 };
 
 export type ProgramDay = { dayId: string; name: string; slots: PlannedSlot[] };
@@ -91,6 +93,8 @@ export type SessionExerciseData = {
   substitutedFromExId: string | null;
   notes: string;
   restSec: number | null;
+  /** Superset: adjacent exercises sharing a groupId are done in rounds. Missing (older rows) = null. */
+  groupId?: string | null;
 };
 
 export type SetData = {

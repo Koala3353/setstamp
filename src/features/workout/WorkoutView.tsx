@@ -1,5 +1,5 @@
 // The active session: the screen a lifter uses between sets. Every common action is one tap.
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { useActiveWorkout } from "../../app/activeWorkout";
 import { navigate } from "../../app/router";
 import { ScreenAction } from "../../app/Shell";
@@ -13,11 +13,13 @@ import { previousPerformance } from "../../logic/history";
 import { progressionHint } from "../../logic/progression";
 import { fmtInt, fmtNum, kgToDisplay, smallestIncrement } from "../../logic/units";
 import { generateWarmups } from "../../logic/warmup";
+import { canLog } from "../../logic/tracking";
+import { afterLog, groupRest, linkWithNext, moveItem, nextInGroup, removeAt, supersetRuns, unlink, type RoundMember, type SupersetRun } from "../../logic/superset";
 import { useUserSettings } from "../session/hooks";
 import { ExercisePicker } from "../exercises/ExercisePicker";
 import { ExerciseCard, type SetRow } from "./ExerciseCard";
 import { useExerciseLookup } from "./exerciseInfo";
-import { addExercise, blankSet, completeProgramDay, removeRows, restoreRows, type Snapshot } from "./ops";
+import { addExercise, blankSet, completeProgramDay, removeRows, restoreRows, warmupSet, writeLayout, type Snapshot } from "./ops";
 import { RestBar } from "./RestBar";
 import { rest } from "./restTimer";
 import { SetEditor } from "./SetEditor";
@@ -25,7 +27,22 @@ import { describePR, summarize } from "./summary";
 import { useOpenSession } from "./useWorkout";
 import "./workout.css";
 
-type Picker = { mode: "add" } | { mode: "substitute"; seCid: string } | null;
+type Picker = { mode: "add" } | { mode: "superset" } | { mode: "substitute"; seCid: string } | null;
+type SeRow = { cid: string; data: SessionExerciseData };
+/** A session exercise as a superset item (src/logic/superset works on top-level groupId). */
+type Item = SeRow & { groupId: string | null };
+
+const prefersReducedMotion = () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+/** Bring the next set into view and give its ✓ keyboard focus, so the round flows on. */
+function focusSet(cid: string) {
+  requestAnimationFrame(() => {
+    const li = document.querySelector<HTMLElement>(`[data-set="${CSS.escape(cid)}"]`);
+    if (!li) return;
+    li.scrollIntoView({ block: "nearest", behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    li.querySelector<HTMLButtonElement>(".wk-set__check")?.focus({ preventScroll: true });
+  });
+}
 
 export function WorkoutView() {
   const open = useOpenSession();
@@ -112,7 +129,10 @@ export function WorkoutView() {
   /** Values a fresh set starts from: the previous set in this card, else last session's matching set. */
   const sourceFor = (seCid: string, exId: string, index: number): SetData | null => {
     const list = setsBySe.get(seCid) ?? [];
-    const before = list.slice(0, index).reverse().find((r) => r.data.kind !== "warmup" && (r.data.weightKg !== null || r.data.reps !== null));
+    const before = list
+      .slice(0, index)
+      .reverse()
+      .find((r) => r.data.kind !== "warmup" && (r.data.weightKg !== null || r.data.reps !== null || r.data.durationSec !== null || r.data.distanceM !== null));
     if (before) return before.data;
     const prev = prevFor(exId)?.sets.filter((s) => s.kind !== "warmup") ?? [];
     const workingIdx = list.slice(0, index).filter((r) => r.data.kind !== "warmup").length;
@@ -128,12 +148,45 @@ export function WorkoutView() {
           reps: s.reps ?? src.reps,
           assistKg: s.assistKg ?? src.assistKg,
           durationSec: s.durationSec ?? src.durationSec,
+          distanceM: s.distanceM ?? src.distanceM,
         }
       : s;
 
+  // Supersets: adjacent exercises sharing a groupId. Older rows have no groupId (= not grouped).
+  const items: Item[] = exercises.map((e) => ({ ...e, groupId: e.data.groupId ?? null }));
+  const runs = supersetRuns(items);
+  const runAt = (i: number): SupersetRun | null => runs.find((r) => i >= r.start && i <= r.end) ?? null;
+  const membersOf = (run: SupersetRun): RoundMember[] =>
+    exercises.slice(run.start, run.end + 1).map((e) => ({ key: e.cid, sets: (setsBySe.get(e.cid) ?? []).map((r) => ({ cid: r.cid, kind: r.data.kind, done: r.data.done })) }));
+  const runRest = (run: SupersetRun) => groupRest(exercises.slice(run.start, run.end + 1).map((e) => restFor(e.data)));
+
   const doLog = (row: SetRow, data: SetData, se: { cid: string; data: SessionExerciseData } | null) => {
     void store.write("sets", row.cid, { ...data, done: true, completedAt: Date.now() });
-    if (se && data.kind !== "warmup") rest.start(restFor(se.data), lookup(se.data.exId).name);
+    if (!se) return;
+    const idx = exercises.findIndex((e) => e.cid === se.cid);
+    const run = idx >= 0 ? runAt(idx) : null;
+    if (!run) {
+      if (data.kind !== "warmup") rest.start(restFor(se.data), lookup(se.data.exId).name);
+      return;
+    }
+    // In a superset: move on to the next exercise of the round; rest only once the round is done.
+    const next = afterLog(membersOf(run), row.cid);
+    if (data.kind !== "warmup") {
+      if (next.rest) rest.start(runRest(run), `Superset ${run.label}`);
+      else rest.skip();
+    }
+    if (next.next && !(setsBySe.get(se.cid) ?? []).some((r) => r.cid === next.next)) focusSet(next.next);
+  };
+
+  /** Save a new order / grouping; `message` offers Undo. */
+  const applyLayout = async (next: Item[] | null, message?: string) => {
+    if (!next) return;
+    const undo = await writeLayout(
+      store,
+      exercises,
+      next.map((x) => ({ cid: x.cid, data: { ...x.data, groupId: x.groupId } })),
+    );
+    if (message && undo.length) toast.show({ message, action: { label: "Undo", onAction: () => void restoreRows(store, undo) } });
   };
 
   const deleteSet = (row: SetRow) => {
@@ -143,21 +196,22 @@ export function WorkoutView() {
     toast.show({ message: "Set deleted", action: { label: "Undo", onAction: () => void restoreRows(store, snap) } });
   };
 
-  const removeExercise = (se: { cid: string; data: SessionExerciseData }) => {
+  const removeExercise = async (se: { cid: string; data: SessionExerciseData }) => {
+    const i = exercises.findIndex((e) => e.cid === se.cid);
     const snap: Snapshot = [
       { table: "sessionExercises", cid: se.cid, data: se.data },
       ...(setsBySe.get(se.cid) ?? []).map((r) => ({ table: "sets" as const, cid: r.cid, data: r.data })),
     ];
-    void removeRows(store, snap);
-    toast.show({ message: `${lookup(se.data.exId).name} removed`, action: { label: "Undo", onAction: () => void restoreRows(store, snap) } });
-  };
-
-  const swap = (i: number, j: number) => {
-    const a = exercises[i];
-    const b = exercises[j];
-    if (!a || !b) return;
-    void store.write("sessionExercises", a.cid, { ...a.data, order: b.data.order === a.data.order ? j : b.data.order });
-    void store.write("sessionExercises", b.cid, { ...b.data, order: b.data.order === a.data.order ? i : a.data.order });
+    await removeRows(store, snap);
+    // A superset left with one exercise dissolves; undo puts the group back too.
+    const left = removeAt(items, i);
+    const changed = await writeLayout(
+      store,
+      exercises.filter((e) => e.cid !== se.cid),
+      left.map((x) => ({ cid: x.cid, data: { ...x.data, groupId: x.groupId } })),
+    );
+    const all = [...snap, ...changed];
+    toast.show({ message: `${lookup(se.data.exId).name} removed`, action: { label: "Undo", onAction: () => void restoreRows(store, all) } });
   };
 
   const addSet = (se: { cid: string; data: SessionExerciseData }) => {
@@ -170,23 +224,25 @@ export function WorkoutView() {
   const addWarmups = async (se: { cid: string; data: SessionExerciseData }) => {
     const list = setsBySe.get(se.cid) ?? [];
     const info = lookup(se.data.exId);
-    const top = list.find((r) => r.data.kind !== "warmup" && r.data.weightKg !== null)?.data.weightKg ?? prevFor(se.data.exId)?.sets.find((s) => s.kind !== "warmup")?.weightKg ?? null;
+    const firstWorking = list.find((r) => r.data.kind !== "warmup" && r.data.weightKg !== null)?.data ?? prevFor(se.data.exId)?.sets.find((s) => s.kind !== "warmup") ?? null;
+    const top = firstWorking?.weightKg ?? null;
     const w = generateWarmups(top, { tracking: info.tracking, equipment: info.equipment, barKg: settings.barKg, platesKg: settings.platesKg, unit });
     if (!w.length) {
       toast.show({ message: top === null ? "Set a working weight first" : "No warm-ups needed at this weight" });
       return;
     }
     for (const [i, r] of list.entries()) await store.write("sets", r.cid, { ...r.data, order: w.length + i });
-    for (const [i, x] of w.entries())
-      await store.write("sets", newCid(), { ...blankSet({ sessionCid: open.cid, sessionExerciseCid: se.cid, exId: se.data.exId, order: i }), kind: "warmup", weightKg: x.weightKg, reps: x.reps });
-    toast.show({ message: `Added ${w.length} warm-up sets: ${w.map((x) => `${fmtNum(kgToDisplay(x.weightKg, unit))}×${x.reps}`).join(", ")}` });
+    const base = { sessionCid: open.cid, sessionExerciseCid: se.cid, exId: se.data.exId };
+    for (const [i, x] of w.entries()) await store.write("sets", newCid(), { ...warmupSet(base, x, info.tracking, firstWorking), order: i });
+    const reps = info.tracking === "weight_reps";
+    toast.show({ message: `Added ${w.length} warm-up sets: ${w.map((x) => `${fmtNum(kgToDisplay(x.weightKg, unit))}${reps ? `×${x.reps}` : ` ${unit}`}`).join(", ")}` });
   };
 
   const onPick = async (exId: string) => {
     const p = picker;
     setPicker(null);
     if (!p) return;
-    if (p.mode === "add") {
+    if (p.mode === "add" || p.mode === "superset") {
       const order = (exercises[exercises.length - 1]?.data.order ?? -1) + 1;
       await addExercise(store, open.cid, exId, order, history, { settings, lookup });
       return;
@@ -199,19 +255,27 @@ export function WorkoutView() {
     for (const r of setsBySe.get(se.cid) ?? []) {
       if (r.data.done) continue;
       const src = r.data.kind === "warmup" ? null : (prev[Math.min(i++, prev.length - 1)] ?? null);
-      const base = { ...r.data, exId, weightKg: null, entered: null, assistKg: null, durationSec: null };
+      const base = { ...r.data, exId, weightKg: null, entered: null, assistKg: null, durationSec: null, distanceM: null };
       await store.write("sets", r.cid, src ? fill(base, src) : { ...base, reps: r.data.reps });
     }
   };
 
-  // The one set to log next, in card order: its ✓ carries the screen's single orange.
+  /** Several exercises at once, linked as one superset (one pick just adds it). */
+  const onPickSuperset = async (exIds: string[]) => {
+    setPicker(null);
+    const groupId = exIds.length >= 2 ? newCid() : null;
+    let order = (exercises[exercises.length - 1]?.data.order ?? -1) + 1;
+    for (const exId of exIds) await addExercise(store, open.cid, exId, order++, history, { settings, lookup, groupId });
+  };
+
+  // The one set to log next, in card order (supersets go round by round): its ✓ carries the screen's single orange.
   let nextCid: string | null = null;
-  for (const e of exercises) {
-    const pending = (setsBySe.get(e.cid) ?? []).find((r) => !r.data.done);
-    if (pending) {
-      nextCid = pending.cid;
-      break;
-    }
+  for (let i = 0; i < exercises.length && nextCid === null; i++) {
+    const run = runAt(i);
+    if (run) {
+      nextCid = nextInGroup(membersOf(run));
+      i = run.end;
+    } else nextCid = (setsBySe.get(exercises[i]!.cid) ?? []).find((r) => !r.data.done)?.cid ?? null;
   }
   const allWorking = [...setsBySe.values()].flat().filter((r) => r.data.kind !== "warmup");
   const plannedWorking = allWorking.length;
@@ -248,6 +312,81 @@ export function WorkoutView() {
     navigate("/", { replace: true });
   };
 
+  const renderCard = (i: number) => {
+    const se = exercises[i]!;
+    const info = lookup(se.data.exId);
+    const slot = se.data.slotId ? (slots.get(se.data.slotId) ?? null) : null;
+    const prev = prevFor(se.data.exId);
+    const hint = slot && prev ? progressionHint(prev.sets, slot.repMin, slot.repMax, smallestIncrement(info.equipment, unit), unit) : null;
+    const sets = setsBySe.get(se.cid) ?? [];
+    const run = runAt(i);
+    const next = items[i + 1];
+    return (
+      <ExerciseCard
+        key={se.cid}
+        info={info}
+        substitutedFrom={se.data.substitutedFromExId ? lookup(se.data.substitutedFromExId).name : null}
+        notes={se.data.notes}
+        restSec={se.data.restSec}
+        sets={sets}
+        prev={prev}
+        slot={slot}
+        hint={hint}
+        settings={settings}
+        nextCid={nextCid}
+        superset={run ? { label: run.label, restSec: runRest(run) } : null}
+        actions={{
+          logSet: (row) => {
+            if (row.data.done) void store.write("sets", row.cid, { ...row.data, done: false, completedAt: null });
+            else {
+              const data = fill(row.data, sourceFor(se.cid, se.data.exId, sets.indexOf(row)));
+              // Nothing to prefill from (e.g. first time on a lift): ask for the numbers rather than log "– × 6".
+              if (!canLog(data, info.tracking)) setEditing(row.cid);
+              else doLog(row, data, se);
+            }
+          },
+          preview: (row) => fill(row.data, sourceFor(se.cid, se.data.exId, sets.indexOf(row))),
+          editSet: (row) => setEditing(row.cid),
+          addSet: () => addSet(se),
+          moveUp: moveItem(items, i, -1) ? () => void applyLayout(moveItem(items, i, -1)) : undefined,
+          moveDown: moveItem(items, i, 1) ? () => void applyLayout(moveItem(items, i, 1)) : undefined,
+          substitute: () => setPicker({ mode: "substitute", seCid: se.cid }),
+          addWarmups: () => void addWarmups(se),
+          remove: () => void removeExercise(se),
+          setNotes: (notes) => void store.write("sessionExercises", se.cid, { ...se.data, notes }),
+          setRest: (restSec) => void store.write("sessionExercises", se.cid, { ...se.data, restSec }),
+          supersetNext:
+            next && (run === null || next.groupId !== run.groupId)
+              ? () => void applyLayout(linkWithNext(items, i, newCid()), `${info.name} and ${lookup(next.data.exId).name} are a superset`)
+              : undefined,
+          leaveSuperset: run ? () => void applyLayout(unlink(items, i), `${info.name} left the superset`) : undefined,
+        }}
+      />
+    );
+  };
+
+  /** Ungrouped cards alone; a superset as one bracketed block whose cards are done round by round. */
+  const blocks: ReactNode[] = [];
+  for (let i = 0; i < exercises.length; i++) {
+    const run = runAt(i);
+    if (!run) {
+      blocks.push(renderCard(i));
+      continue;
+    }
+    blocks.push(
+      <section key={`ss-${run.groupId}`} className="wk-superset" aria-label={`Superset ${run.label}`}>
+        <header className="wk-superset__head">
+          <span className="wk-superset__label">Superset {run.label}</span>
+          <span className="wk-superset__meta">
+            {run.end - run.start + 1} exercises · rest <span className="num">{formatDuration(runRest(run))}</span> after each round
+          </span>
+        </header>
+        <div className="wk-superset__cards">{exercises.slice(run.start, run.end + 1).map((_, k) => renderCard(run.start + k))}</div>
+      </section>,
+    );
+    i = run.end;
+  }
+
   const editSe = editingRow?.se ?? null;
   const editInfo = editSe ? lookup(editSe.data.exId) : null;
   const editIdx = editingRow && editSe ? (setsBySe.get(editSe.cid) ?? []).findIndex((r) => r.cid === editingRow.row.cid) : -1;
@@ -278,58 +417,16 @@ export function WorkoutView() {
         </EmptyState>
       )}
 
-      {exercises.map((se, i) => {
-        const info = lookup(se.data.exId);
-        const slot = se.data.slotId ? (slots.get(se.data.slotId) ?? null) : null;
-        const prev = prevFor(se.data.exId);
-        const hint = slot && prev ? progressionHint(prev.sets, slot.repMin, slot.repMax, smallestIncrement(info.equipment, unit), unit) : null;
-        const sets = setsBySe.get(se.cid) ?? [];
-        return (
-          <ExerciseCard
-            key={se.cid}
-            info={info}
-            substitutedFrom={se.data.substitutedFromExId ? lookup(se.data.substitutedFromExId).name : null}
-            notes={se.data.notes}
-            restSec={se.data.restSec}
-            sets={sets}
-            prev={prev}
-            slot={slot}
-            hint={hint}
-            settings={settings}
-            nextCid={nextCid}
-            actions={{
-              logSet: (row) => {
-                if (row.data.done) void store.write("sets", row.cid, { ...row.data, done: false, completedAt: null });
-                else {
-                  const data = fill(row.data, sourceFor(se.cid, se.data.exId, sets.indexOf(row)));
-                  // Nothing to prefill from (e.g. first time on a lift): ask for the numbers rather than log "– × 6".
-                  const t = info.tracking;
-                  const missing =
-                    t === "duration" || t === "distance_time"
-                      ? data.durationSec === null
-                      : data.reps === null || (t === "weight_reps" && data.weightKg === null);
-                  if (missing) setEditing(row.cid);
-                  else doLog(row, data, se);
-                }
-              },
-              preview: (row) => fill(row.data, sourceFor(se.cid, se.data.exId, sets.indexOf(row))),
-              editSet: (row) => setEditing(row.cid),
-              addSet: () => addSet(se),
-              moveUp: i > 0 ? () => swap(i, i - 1) : undefined,
-              moveDown: i < exercises.length - 1 ? () => swap(i, i + 1) : undefined,
-              substitute: () => setPicker({ mode: "substitute", seCid: se.cid }),
-              addWarmups: () => void addWarmups(se),
-              remove: () => removeExercise(se),
-              setNotes: (notes) => void store.write("sessionExercises", se.cid, { ...se.data, notes }),
-              setRest: (restSec) => void store.write("sessionExercises", se.cid, { ...se.data, restSec }),
-            }}
-          />
-        );
-      })}
+      {blocks}
 
-      <Button variant="secondary" block icon={<IconPlus size={20} />} onClick={() => setPicker({ mode: "add" })}>
-        Add exercise
-      </Button>
+      <div className="wk-add">
+        <Button variant="secondary" block icon={<IconPlus size={20} />} onClick={() => setPicker({ mode: "add" })}>
+          Add exercise
+        </Button>
+        <Button variant="ghost" onClick={() => setPicker({ mode: "superset" })}>
+          Add superset
+        </Button>
+      </div>
 
       <label className="wk-field wk-notes">
         <span className="wk-field__label">Session notes</span>
@@ -383,7 +480,10 @@ export function WorkoutView() {
         open={picker !== null}
         onClose={() => setPicker(null)}
         onPick={(exId: string) => void onPick(exId)}
-        mode={picker?.mode ?? "add"}
+        multi={picker?.mode === "superset"}
+        onPickMany={(ids: string[]) => void onPickSuperset(ids)}
+        title={picker?.mode === "superset" ? "Pick exercises for a superset" : undefined}
+        mode={picker?.mode === "substitute" ? "substitute" : "add"}
         substituteFor={picker?.mode === "substitute" ? exercises.find((e) => e.cid === picker.seCid)?.data.exId : undefined}
         sessionMuscles={sessionMuscles}
       />

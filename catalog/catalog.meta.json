@@ -1,6 +1,6 @@
 {
-  "version": "11b276374481070c",
-  "builtAt": "2026-11-23T20:19:08.280Z",
+  "version": "18d39f65864ee637",
+  "builtAt": "2026-11-24T08:08:19.360Z",
   "schema": 1,
   "sources": {
     "free-exercise-db": {
@@ -64,8 +64,10 @@
     "tracking": {
       "assisted_reps": 2,
       "bodyweight_reps": 262,
-      "distance_time": 42,
-      "duration": 284,
+      "distance_time": 26,
+      "duration": 274,
+      "weight_distance": 16,
+      "weight_duration": 10,
       "weight_reps": 793
     },
     "commonness": {

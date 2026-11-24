@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { PlannedSlot } from "../../shared/sync";
 import { Button, IconTrash, ListGroup, ListRow, Segmented, Sheet, Stepper, Switch } from "../../ui";
 import type { ExerciseLookup } from "../coverage/coverage";
+import { isHold, usesReps } from "../../logic/tracking";
 
 type Props = {
   slot: PlannedSlot | null;
@@ -13,9 +14,13 @@ type Props = {
   onRemove: (slotId: string) => void;
   onSwap: (slotId: string) => void;
   onAddAlternate: (slotId: string) => void;
+  /** Label of the superset this slot is in, if any. */
+  superset?: string | null;
+  onSupersetNext?: () => void;
+  onLeaveSuperset?: () => void;
 };
 
-export function SlotSheet({ slot, lookup, defaultRestSec, onClose, onChange, onRemove, onSwap, onAddAlternate }: Props) {
+export function SlotSheet({ slot, lookup, defaultRestSec, onClose, onChange, onRemove, onSwap, onAddAlternate, superset, onSupersetNext, onLeaveSuperset }: Props) {
   // Keep the last slot while the sheet animates closed.
   const [shown, setShown] = useState<PlannedSlot | null>(slot);
   useEffect(() => {
@@ -25,6 +30,8 @@ export function SlotSheet({ slot, lookup, defaultRestSec, onClose, onChange, onR
   if (!s) return <Sheet open={false} onClose={onClose} title="">{null}</Sheet>;
   const ex = lookup(s.exId);
   const target = s.durationSec != null ? "time" : "reps";
+  // Carries and timed cardio have no rep or hold target.
+  const noTarget = ex ? !isHold(ex.tracking) && !usesReps(ex.tracking) : false;
   const set = (patch: Partial<PlannedSlot>) => onChange({ ...s, ...patch });
 
   return (
@@ -40,6 +47,10 @@ export function SlotSheet({ slot, lookup, defaultRestSec, onClose, onChange, onR
     >
       <div className="prog-form">
         <Stepper label="Working sets" value={s.sets} min={1} max={12} step={1} inputMode="numeric" onChange={(v) => set({ sets: Math.max(1, v ?? 1) })} />
+        {noTarget ? (
+          <p className="small muted">Logged as {ex?.tracking === "weight_distance" ? "weight and distance" : "distance and time"}, so there is no rep or hold target.</p>
+        ) : (
+        <>
         <Segmented
           label="Target"
           options={[
@@ -74,6 +85,8 @@ export function SlotSheet({ slot, lookup, defaultRestSec, onClose, onChange, onR
           </div>
         ) : (
           <Stepper label="Hold" unit="s" value={s.durationSec} min={5} max={600} step={5} inputMode="numeric" onChange={(v) => set({ durationSec: v ?? 30 })} />
+        )}
+        </>
         )}
         <Stepper
           label="Rest"
@@ -117,6 +130,27 @@ export function SlotSheet({ slot, lookup, defaultRestSec, onClose, onChange, onR
             Add alternate
           </Button>
         </div>
+
+        {(onSupersetNext || onLeaveSuperset) && (
+          <div className="prog-form__group">
+            <h3 className="cov-sheet__title">Superset</h3>
+            <p className="small muted">
+              {superset
+                ? `Part of superset ${superset}: done round by round, resting after each round for the longest rest in the group.`
+                : "Pair with the next exercise and do them back to back, resting after each round."}
+            </p>
+            {onSupersetNext && (
+              <Button variant="secondary" onClick={onSupersetNext}>
+                Superset with next
+              </Button>
+            )}
+            {onLeaveSuperset && (
+              <Button variant="secondary" onClick={onLeaveSuperset}>
+                Remove from superset
+              </Button>
+            )}
+          </div>
+        )}
 
         <div className="prog-form__actions">
           <Button variant="secondary" onClick={() => onSwap(s.slotId)}>
