@@ -7,6 +7,7 @@ import {
   groupRest,
   linkWithNext,
   moveItem,
+  moveTo,
   nextInGroup,
   normalizeGroups,
   removeAt,
@@ -126,5 +127,87 @@ describe("superset rounds", () => {
   it("group rest is the longest member rest", () => {
     expect(groupRest([90, 150, 60])).toBe(150);
     expect(groupRest([])).toBe(0);
+  });
+});
+
+describe("moveTo (drag and drop)", () => {
+  const mv = (spec: string, from: number, to: number) => {
+    const r = moveTo(items(spec), from, to);
+    return r === null ? null : show(r);
+  };
+
+  it("moves ungrouped items like an array move", () => {
+    expect(mv("a b c d", 0, 2)).toBe("b c a d");
+    expect(mv("a b c d", 3, 0)).toBe("d a b c");
+    expect(mv("a b c d", 1, 3)).toBe("a c d b");
+  });
+
+  it("returns null for no-ops and bad input", () => {
+    expect(mv("a b c", 1, 1)).toBeNull();
+    expect(mv("a", 0, 0)).toBeNull();
+    expect(mv("a b", 5, 0)).toBeNull();
+    expect(mv("a b", -1, 0)).toBeNull();
+    expect(moveTo([], 0, 0)).toBeNull();
+  });
+
+  it("clamps the target to the list", () => {
+    expect(mv("a b c", 0, 99)).toBe("b c a");
+    expect(mv("a b c", 2, -4)).toBe("c a b");
+  });
+
+  it("reorders inside a superset when dropped inside it", () => {
+    expect(mv("a b:g c:g d:g e", 1, 3)).toBe("a c:g d:g b:g e");
+    expect(mv("a b:g c:g d:g e", 3, 1)).toBe("a d:g b:g c:g e");
+    expect(mv("a:g b:g", 0, 1)).toBe("b:g a:g");
+  });
+
+  it("moves the whole superset when a member is dropped outside it", () => {
+    // first member dragged to the end
+    expect(mv("a:g b:g c d", 0, 3)).toBe("c d a:g b:g");
+    // last member dragged above everything
+    expect(mv("a b c:g d:g", 3, 0)).toBe("c:g d:g a b");
+    // a middle member dragged down one past the block
+    expect(mv("x a:g b:g c:g y z", 2, 4)).toBe("x y a:g b:g c:g z");
+    // a member dragged up past one item
+    expect(mv("x y a:g b:g", 3, 1)).toBe("x a:g b:g y");
+  });
+
+  it("never splits a superset it is dropped into", () => {
+    // ungrouped item dragged into a pair: passing one of two members jumps the pair
+    expect(mv("a b:g c:g d", 0, 1)).toBe("b:g c:g a d");
+    expect(mv("a b:g c:g d", 3, 2)).toBe("a d b:g c:g");
+    // a three-member superset: passing one stays above, passing two jumps below
+    expect(mv("a b:g c:g d:g", 0, 1)).toBeNull();
+    expect(mv("a b:g c:g d:g", 0, 2)).toBe("b:g c:g d:g a");
+    expect(mv("b:g c:g d:g a", 3, 2)).toBeNull();
+    expect(mv("b:g c:g d:g a", 3, 1)).toBe("a b:g c:g d:g");
+    // a superset dragged into another superset
+    expect(mv("a:x b:x c:y d:y", 0, 2)).toBe("c:y d:y a:x b:x");
+    expect(mv("a:x b:x c:y d:y", 3, 1)).toBe("c:y d:y a:x b:x");
+    // every result keeps groups contiguous
+    const spec = "a b:g c:g d e:h f:h g:h i";
+    for (let f = 0; f < 9; f++)
+      for (let t = 0; t < 9; t++) {
+        const r = moveTo(items(spec), f, t);
+        if (r) expect(normalizeGroups(r)).toEqual(r);
+      }
+  });
+
+  it("agrees with moveItem for single steps", () => {
+    const spec = "a b:g c:g d e:h f:h g";
+    for (let i = 0; i < 7; i++) {
+      const [s, e] = blockAt(items(spec), i);
+      const down = moveItem(items(spec), i, 1);
+      if (down && e === i) {
+        // the next block's size decides how far a whole-block step lands
+        const [, d] = blockAt(items(spec), e + 1);
+        expect(moveTo(items(spec), i, i + (d - e))).toEqual(down);
+      }
+      const up = moveItem(items(spec), i, -1);
+      if (up && s === i) {
+        const [c] = blockAt(items(spec), s - 1);
+        expect(moveTo(items(spec), i, i - (s - c))).toEqual(up);
+      }
+    }
   });
 });

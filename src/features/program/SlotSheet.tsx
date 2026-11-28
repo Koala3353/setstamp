@@ -18,9 +18,12 @@ type Props = {
   superset?: string | null;
   onSupersetNext?: () => void;
   onLeaveSuperset?: () => void;
+  /** Fallback to dragging: present when the slot can move that way. */
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
 };
 
-export function SlotSheet({ slot, lookup, defaultRestSec, onClose, onChange, onRemove, onSwap, onAddAlternate, superset, onSupersetNext, onLeaveSuperset }: Props) {
+export function SlotSheet({ slot, lookup, defaultRestSec, onClose, onChange, onRemove, onSwap, onAddAlternate, superset, onSupersetNext, onLeaveSuperset, onMoveUp, onMoveDown }: Props) {
   // Keep the last slot while the sheet animates closed.
   const [shown, setShown] = useState<PlannedSlot | null>(slot);
   useEffect(() => {
@@ -149,6 +152,17 @@ export function SlotSheet({ slot, lookup, defaultRestSec, onClose, onChange, onR
                 Remove from superset
               </Button>
             )}
+          </div>
+        )}
+
+        {(onMoveUp || onMoveDown) && (
+          <div className="prog-form__actions">
+            <Button variant="secondary" disabled={!onMoveUp} onClick={onMoveUp}>
+              Move up
+            </Button>
+            <Button variant="secondary" disabled={!onMoveDown} onClick={onMoveDown}>
+              Move down
+            </Button>
           </div>
         )}
 

@@ -1,11 +1,10 @@
 // Edit one program day: name, slots (add via picker, reorder, edit, swap, remove) and a live
 // body map that updates as exercises are added.
 import { useMemo, useState } from "react";
-import { IconArrow } from "./ArrowIcon";
 import type { Muscle } from "../../shared/domain";
 import type { PlannedSlot, ProgramData, ProgramDay, SettingsData } from "../../shared/sync";
 import { newCid } from "../../sync";
-import { Button, Card, IconButton, IconChevronLeft, IconPlus, ListGroup, ListRow, Stat, StatGrid, TextField, useToast } from "../../ui";
+import { Button, Card, IconChevronLeft, IconPlus, ListGroup, ListRow, SortHandle, Stat, StatGrid, TextField, useSortable, useToast } from "../../ui";
 import { Section } from "../../app/Shell";
 import { goBack } from "../../app/router";
 import { ExercisePicker } from "../exercises/ExercisePicker";
@@ -14,7 +13,7 @@ import { describeSlot, estimateDayMinutes, type ExerciseIndexLike } from "./form
 import { SlotSheet } from "./SlotSheet";
 import { newSlot } from "./templates";
 import { replaceDays } from "./schedule";
-import { linkWithNext, moveItem, removeAt, supersetRuns, unlink } from "../../logic/superset";
+import { linkWithNext, moveItem, moveTo, removeAt, supersetRuns, unlink } from "../../logic/superset";
 import { cx } from "../../ui";
 
 type PickerState = { kind: "add" } | { kind: "superset" } | { kind: "swap"; slotId: string } | { kind: "alternate"; slotId: string } | null;
@@ -60,6 +59,21 @@ export function DayEditor({
     const next = moveItem(day.slots, i, by);
     if (next) void saveSlots(next);
   };
+
+  // Drag to reorder; a superset moves as one block unless the drop lands inside it.
+  const slotName = (slotId: string) => {
+    const s = day.slots.find((x) => x.slotId === slotId);
+    return (s && lookup(s.exId)?.name) ?? "Exercise";
+  };
+  const sort = useSortable({
+    keys: day.slots.map((s) => s.slotId),
+    name: slotName,
+    resolve: (from, to) => moveTo(day.slots, from, to)?.map((s) => s.slotId) ?? null,
+    onCommit: (order) => {
+      const byId = new Map(day.slots.map((s) => [s.slotId, s]));
+      void saveSlots(order.map((id) => byId.get(id)!));
+    },
+  });
 
   const minutes = estimateDayMinutes(day, settings.defaultRestSec);
   const over = settings.sessionMinutes != null && settings.sessionMinutes > 0 && minutes > settings.sessionMinutes;
@@ -114,7 +128,7 @@ export function DayEditor({
         {day.slots.length === 0 ? (
           <p className="small muted">No exercises yet. Add some, then watch the body map below fill in.</p>
         ) : (
-          <ListGroup label="Planned exercises" className="prog-list">
+          <ListGroup label="Planned exercises" className={sort.listClass("prog-list")}>
             {day.slots.map((s, i) => {
               const name = lookup(s.exId)?.name ?? s.exId;
               const run = runAt(i);
@@ -122,25 +136,20 @@ export function DayEditor({
               const station = run ? `${run.label}${i - run.start + 1}` : String(i + 1);
               const meta = describeSlot(s, settings.defaultRestSec);
               return (
-                <li
-                  key={s.slotId}
-                  className={cx("prog-slot", run && "is-ss", run && i === run.start && "is-ss-first", run && i === run.end && "is-ss-last")}
-                >
+                <li key={s.slotId} {...sort.item(s.slotId, cx("prog-slot", run && "is-ss", run && i === run.start && "is-ss-first", run && i === run.end && "is-ss-last"))}>
+                  <SortHandle bind={sort.handle(s.slotId)} />
                   <ListRow
                     leading={<span className="prog-station num">{station}</span>}
                     title={name}
                     meta={run ? `Superset ${run.label} · ${meta}` : meta}
                     onClick={() => setEditing(s.slotId)}
                   />
-                  <span className="prog-slot__order">
-                    <IconButton label={`Move ${name} up`} icon={<IconArrow dir="up" />} disabled={!moveItem(day.slots, i, -1)} onClick={() => move(i, -1)} />
-                    <IconButton label={`Move ${name} down`} icon={<IconArrow dir="down" />} disabled={!moveItem(day.slots, i, 1)} onClick={() => move(i, 1)} />
-                  </span>
                 </li>
               );
             })}
           </ListGroup>
         )}
+        {sort.live}
         <Button variant="secondary" block icon={<IconPlus size={20} />} onClick={() => setPicker({ kind: "add" })}>
           Add exercises
         </Button>
@@ -183,6 +192,8 @@ export function DayEditor({
             : undefined
         }
         onLeaveSuperset={editingIdx >= 0 && runAt(editingIdx) ? () => void saveSlots(unlink(day.slots, editingIdx)) : undefined}
+        onMoveUp={editingIdx >= 0 && moveItem(day.slots, editingIdx, -1) ? () => move(editingIdx, -1) : undefined}
+        onMoveDown={editingIdx >= 0 && moveItem(day.slots, editingIdx, 1) ? () => move(editingIdx, 1) : undefined}
         onSwap={(slotId) => {
           setEditing(null);
           setPicker({ kind: "swap", slotId });

@@ -111,6 +111,48 @@ export function moveItem<T extends Groupable>(items: readonly T[], i: number, di
 
 export const canMove = (items: readonly Groupable[], i: number, dir: -1 | 1) => moveItem(items, i, dir) !== null;
 
+/**
+ * Drag-and-drop move: item `from` asks to end up at index `to` (array-move semantics: `to` is its
+ * index in the result, i.e. how many of the other items sit above it). Same block rules as
+ * `moveItem`, so nothing is ever split:
+ *   - a superset member dropped inside its own superset reorders within it;
+ *   - otherwise its whole block (the superset, or just itself) moves;
+ *   - a block dropped inside another superset snaps to that superset's nearer edge, judged by how
+ *     many of its members the drag has passed.
+ * Returns null when the order would not change.
+ */
+export function moveTo<T extends Groupable>(items: readonly T[], from: number, to: number): T[] | null {
+  const n = items.length;
+  if (from < 0 || from >= n || !Number.isInteger(from) || !Number.isInteger(to)) return null;
+  to = Math.max(0, Math.min(n - 1, to));
+  if (to === from) return null;
+  const [a, b] = blockAt(items, from);
+  if (a < b && to >= a && to <= b) {
+    const out = [...items];
+    const [x] = out.splice(from, 1);
+    out.splice(to, 0, x!);
+    return out;
+  }
+  const block = items.slice(a, b + 1);
+  const rest = [...items.slice(0, a), ...items.slice(b + 1)];
+  const down = to > from;
+  // How many items outside the block should end up above it. Moving down, every block mate is
+  // among the `to` items above the dragged one; moving up, none are.
+  let p = down ? to - (b - a) : to;
+  if (p > 0 && p < rest.length) {
+    const g = groupOf(rest[p - 1]!);
+    if (g !== null && groupOf(rest[p]!) === g) {
+      const [c, d] = blockAt(rest, p);
+      const size = d - c + 1;
+      const passed = down ? p - c : d + 1 - p;
+      const past = passed * 2 >= size;
+      p = down === past ? d + 1 : c;
+    }
+  }
+  const out = [...rest.slice(0, p), ...block, ...rest.slice(p)];
+  return out.every((x, k) => x === items[k]) ? null : out;
+}
+
 export type SupersetRun = { start: number; end: number; groupId: string; label: string };
 
 /** Contiguous supersets of two or more, labelled A, B, C… in order. */

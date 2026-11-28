@@ -1,5 +1,7 @@
 // One exercise in the session: last time, target, set rows with a one-tap ✓, and a menu for the rest.
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import type { SortItemBind } from "../../ui";
+import "./reorder.css";
 import { cx } from "../../ui";
 import type { PlannedSlot, SetData, SettingsData } from "../../shared/sync";
 import { Button, IconButton, IconCheck, IconInfo, IconMore, IconPlus, Sheet, TextField } from "../../ui";
@@ -45,7 +47,13 @@ export function ExerciseCard({
   nextCid,
   superset,
   actions,
+  sortItem,
+  handle,
 }: {
+  /** Drag-and-drop binding from the list (useSortable). */
+  sortItem?: SortItemBind;
+  /** Drag handle, shown at the start of the header. */
+  handle?: ReactNode;
   info: ExInfo;
   substitutedFrom: string | null;
   notes: string;
@@ -88,8 +96,15 @@ export function ExerciseCard({
   };
 
   return (
-    <article className={cx("wk-card", complete && "is-complete")} aria-label={info.name}>
+    <article
+      ref={sortItem?.ref}
+      style={sortItem?.style}
+      data-sort-key={sortItem?.["data-sort-key"]}
+      className={cx("wk-card", complete && "is-complete", sortItem?.className)}
+      aria-label={info.name}
+    >
       <header className="wk-card__head">
+        {handle}
         <div className="wk-card__titles">
           <h3 className="wk-card__name">{info.name}</h3>
           {substitutedFrom && <p className="wk-card__swap">Swapped in for {substitutedFrom}</p>}

@@ -5,7 +5,7 @@ import { IconArrow } from "./ArrowIcon";
 import type { ProgramData, ProgramDay, SettingsData } from "../../shared/sync";
 import { newCid } from "../../sync";
 import { useRows, useSyncStore } from "../../sync/react";
-import { Button, Card, Chip, IconButton, IconPlay, IconPlus, IconTrash, ListGroup, ListRow, Sheet, useToast } from "../../ui";
+import { Button, Card, Chip, IconButton, IconPlay, IconPlus, IconTrash, ListGroup, ListRow, Sheet, SortHandle, useSortable, useToast } from "../../ui";
 import { Section } from "../../app/Shell";
 import { navigate } from "../../app/router";
 import { useOpenSession } from "../workout/useWorkout";
@@ -97,6 +97,15 @@ export function ProgramOverview({
     [days[i], days[j]] = [days[j]!, days[i]!];
     void setDays(days);
   };
+  // Drag a day to reorder; the same day stays up next (replaceDays).
+  const sort = useSortable({
+    keys: program.days.map((d) => d.dayId),
+    name: (dayId) => program.days.find((d) => d.dayId === dayId)?.name ?? "Day",
+    onCommit: (order) => {
+      const byId = new Map(program.days.map((d) => [d.dayId, d]));
+      void setDays(order.map((id) => byId.get(id)!));
+    },
+  });
   const removeDay = (d: ProgramDay) => {
     const before = program;
     void setDays(program.days.filter((x) => x.dayId !== d.dayId));
@@ -165,9 +174,10 @@ export function ProgramOverview({
           </Button>
         }
       >
-        <ListGroup label="Program days" className="prog-list">
+        <ListGroup label="Program days" className={sort.listClass("prog-list")}>
           {program.days.map((d, i) => (
-            <li key={d.dayId} className="prog-slot">
+            <li key={d.dayId} {...sort.item(d.dayId, "prog-slot")}>
+              {program.days.length > 1 && <SortHandle bind={sort.handle(d.dayId)} />}
               <ListRow
                 leading={<span className={`prog-station num${up?.day.dayId === d.dayId ? " is-next" : ""}`}>{i + 1}</span>}
                 title={d.name}
@@ -182,6 +192,7 @@ export function ProgramOverview({
             </li>
           ))}
         </ListGroup>
+        {sort.live}
       </Section>
 
       <Section title="Muscle coverage" id="prog-coverage" meta="What the planned week works, and what you actually logged.">

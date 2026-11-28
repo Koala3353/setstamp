@@ -191,6 +191,18 @@ export const IconMore = (p: IconProps) => (
   </Svg>
 );
 
+/** Drag handle: two columns of stamped squares. */
+export const IconGrip = (p: IconProps) => (
+  <Svg {...p} stroke="none" fill="currentColor">
+    <rect x="8" y="4.75" width="3" height="3" rx="0.5" />
+    <rect x="13" y="4.75" width="3" height="3" rx="0.5" />
+    <rect x="8" y="10.5" width="3" height="3" rx="0.5" />
+    <rect x="13" y="10.5" width="3" height="3" rx="0.5" />
+    <rect x="8" y="16.25" width="3" height="3" rx="0.5" />
+    <rect x="13" y="16.25" width="3" height="3" rx="0.5" />
+  </Svg>
+);
+
 export const IconTrash = (p: IconProps) => (
   <Svg {...p}>
     <path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13" />

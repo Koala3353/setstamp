@@ -74,9 +74,18 @@
   display: flex;
   align-items: center;
 }
-.prog-slot > :first-child {
+.prog-slot > .ui-row {
   flex: 1;
   min-width: 0;
+}
+/* Drag handle at the row's left edge; the row gives up its own left padding to it. */
+.prog-slot > .ui-sort-handle {
+  align-self: stretch;
+  width: 36px;
+  margin-left: var(--s-1);
+}
+.prog-slot > .ui-sort-handle + .ui-row {
+  padding-left: var(--s-1);
 }
 .prog-slot__order {
   display: flex;

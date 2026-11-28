@@ -14,5 +14,6 @@ export { SectionHeader } from "./SectionHeader";
 export { Stat, StatGrid } from "./Stat";
 export { TextField, type TextFieldProps } from "./TextField";
 export { Wordmark, BrandMark, type WordmarkProps, type BrandMarkProps } from "./Wordmark";
+export { useSortable, SortHandle, arrayMove, type Sortable, type SortableOptions, type SortHandleBind, type SortItemBind } from "./Sortable";
 export { cx } from "./cx";
 export * from "./icons";

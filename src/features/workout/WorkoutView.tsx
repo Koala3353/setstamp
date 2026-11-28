@@ -8,13 +8,13 @@ import type { Muscle } from "../../shared/domain";
 import type { PlannedSlot, SessionExerciseData, SetData } from "../../shared/sync";
 import { newCid } from "../../sync";
 import { useRows, useSyncStore } from "../../sync/react";
-import { Button, Card, EmptyState, IconDumbbell, IconPlus, IconRecord, Sheet, Stat, StatGrid, useToast } from "../../ui";
+import { Button, Card, EmptyState, IconDumbbell, IconPlus, IconRecord, Sheet, SortHandle, Stat, StatGrid, useSortable, useToast } from "../../ui";
 import { previousPerformance } from "../../logic/history";
 import { progressionHint } from "../../logic/progression";
 import { fmtInt, fmtNum, kgToDisplay, smallestIncrement } from "../../logic/units";
 import { generateWarmups } from "../../logic/warmup";
 import { canLog } from "../../logic/tracking";
-import { afterLog, groupRest, linkWithNext, moveItem, nextInGroup, removeAt, supersetRuns, unlink, type RoundMember, type SupersetRun } from "../../logic/superset";
+import { afterLog, groupRest, linkWithNext, moveItem, moveTo, nextInGroup, removeAt, supersetRuns, unlink, type RoundMember, type SupersetRun } from "../../logic/superset";
 import { useUserSettings } from "../session/hooks";
 import { ExercisePicker } from "../exercises/ExercisePicker";
 import { ExerciseCard, type SetRow } from "./ExerciseCard";
@@ -101,6 +101,29 @@ export function WorkoutView() {
     }
     return null;
   }, [editing, setsBySe, exercises]);
+
+  // Drag to reorder exercises. A superset member dropped inside its superset reorders within it;
+  // dropped anywhere else, the whole superset moves (moveTo never splits one).
+  const sort = useSortable({
+    keys: exercises.map((e) => e.cid),
+    name: (cid) => {
+      const e = exercises.find((x) => x.cid === cid);
+      return e ? lookup(e.data.exId).name : "Exercise";
+    },
+    resolve: (from, to) => moveTo(exercises.map((e) => ({ cid: e.cid, groupId: e.data.groupId ?? null })), from, to)?.map((x) => x.cid) ?? null,
+    onCommit: (order) => {
+      if (!store) return;
+      const byCid = new Map(exercises.map((e) => [e.cid, e]));
+      void writeLayout(
+        store,
+        exercises,
+        order.map((cid) => {
+          const e = byCid.get(cid)!;
+          return { cid, data: { ...e.data, groupId: e.data.groupId ?? null } };
+        }),
+      );
+    },
+  });
 
   if (!open || !store) {
     return (
@@ -324,6 +347,8 @@ export function WorkoutView() {
     return (
       <ExerciseCard
         key={se.cid}
+        sortItem={sort.item(se.cid)}
+        handle={exercises.length > 1 ? <SortHandle bind={sort.handle(se.cid)} /> : null}
         info={info}
         substitutedFrom={se.data.substitutedFromExId ? lookup(se.data.substitutedFromExId).name : null}
         notes={se.data.notes}
@@ -365,7 +390,10 @@ export function WorkoutView() {
     );
   };
 
-  /** Ungrouped cards alone; a superset as one bracketed block whose cards are done round by round. */
+  /**
+   * Ungrouped cards alone; a superset as one bracketed block whose cards are done round by round.
+   * While dragging, blocks and cards keep their DOM place and take the preview order via CSS `order`.
+   */
   const blocks: ReactNode[] = [];
   for (let i = 0; i < exercises.length; i++) {
     const run = runAt(i);
@@ -374,8 +402,13 @@ export function WorkoutView() {
       continue;
     }
     blocks.push(
-      <section key={`ss-${run.groupId}`} className="wk-superset" aria-label={`Superset ${run.label}`}>
-        <header className="wk-superset__head">
+      <section
+        key={`ss-${run.groupId}`}
+        className="wk-superset"
+        aria-label={`Superset ${run.label}`}
+        style={{ order: Math.min(...exercises.slice(run.start, run.end + 1).map((e) => sort.rank(e.cid))) }}
+      >
+        <header className="wk-superset__head" ref={sort.extra(`ss-${run.groupId}`)}>
           <span className="wk-superset__label">Superset {run.label}</span>
           <span className="wk-superset__meta">
             {run.end - run.start + 1} exercises · rest <span className="num">{formatDuration(runRest(run))}</span> after each round
@@ -417,7 +450,8 @@ export function WorkoutView() {
         </EmptyState>
       )}
 
-      {blocks}
+      {blocks.length > 0 && <div className={sort.listClass("wk-list")}>{blocks}</div>}
+      {sort.live}
 
       <div className="wk-add">
         <Button variant="secondary" block icon={<IconPlus size={20} />} onClick={() => setPicker({ mode: "add" })}>

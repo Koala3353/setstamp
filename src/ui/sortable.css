@@ -1,0 +1,83 @@
+/* Drag-and-drop reordering (Sortable.tsx). Tokens from src/styles/tokens.css. */
+
+/* The list: flex column so the preview order can be applied with `order` without moving DOM. */
+.ui-sortable {
+  display: flex;
+  flex-direction: column;
+}
+/* A ListGroup clips its rows to the rounded plate; a lifted row must be able to leave it. */
+.ui-list.ui-sortable.is-sorting {
+  overflow: visible;
+}
+/* Seams follow DOM order, which is not the visual order mid-drag: hide them until the drop. */
+.ui-list.ui-sortable.is-sorting > li + li {
+  border-top-color: transparent;
+}
+
+.ui-sort-item {
+  /* Keyboard moves scroll the item clear of the sticky header and the bottom dock. */
+  scroll-margin: 80px 0 calc(var(--dock-h, 0px) + var(--s-4));
+}
+.ui-sort-item.is-lifted {
+  position: relative;
+  z-index: 6;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-toast);
+  scale: 1.02;
+  transition: scale var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+
+/* ---------- Handle ---------- */
+.ui-sort-handle {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink-3);
+  cursor: grab;
+  /* Only the handle stops the browser from panning, so the list still scrolls under a thumb. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+/* The visible grip is narrow; the touch target is a full 44 × 44. */
+.ui-sort-handle::before {
+  content: "";
+  position: absolute;
+  inset: 0 -6px;
+}
+.ui-sort-handle:hover {
+  color: var(--ink-2);
+}
+.ui-sort-handle:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.is-lifted .ui-sort-handle {
+  color: var(--ink);
+}
+
+/* While a pointer drag runs: no text selection, a grabbing cursor everywhere. */
+html.ui-sorting,
+html.ui-sorting * {
+  cursor: grabbing !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-sort-item.is-lifted {
+    scale: none;
+    transition: none;
+  }
+}
