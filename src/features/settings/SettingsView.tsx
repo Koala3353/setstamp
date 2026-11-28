@@ -2,6 +2,7 @@
 // Every preference lives in the synced settings row (cid "settings") except the theme, which is
 // per device.
 import { useState } from "react";
+import { useConvex } from "convex/react";
 import pkg from "../../../package.json";
 import { Section } from "../../app/Shell";
 import { useThemePref, type ThemePref } from "../../app/theme";
@@ -38,6 +39,8 @@ import { openSyncIssues } from "../session/SyncIssues";
 import { useTutorial } from "../tutorial";
 import { DataControls } from "./DataControls";
 import { isIOS, isStandalone, promptInstall, useInstallState } from "./install";
+import { disablePush, enablePush, useRestPush } from "../workout/restPush";
+import { setSoundEnabled, useRestSound } from "../workout/restTimer";
 import "./settings.css";
 
 const KG_PLATES = [25, 20, 15, 10, 5, 2.5, 1.25];
@@ -138,6 +141,10 @@ export function SettingsView() {
         </div>
       </Section>
 
+      <Section title="Rest alerts" id="set-rest-alerts">
+        <RestAlerts />
+      </Section>
+
       <Section title="Equipment you have" id="set-equipment">
         <EquipmentPicker value={s.availableEquipment} onChange={(availableEquipment) => void update({ availableEquipment })} />
       </Section>
@@ -212,6 +219,75 @@ export function SettingsView() {
         <About />
         <Credits />
       </Section>
+    </div>
+  );
+}
+
+function RestAlerts() {
+  const client = useConvex();
+  const sound = useRestSound();
+  const push = useRestPush();
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+
+  let pushRow = null;
+  let pushNote = null;
+  if (push.available) {
+    if (push.support === "ios-needs-install") {
+      pushNote = (
+        <p className="muted small">
+          Add Setstamp to your Home Screen to get alerts when the app is closed. In Safari, tap Share, then Add to Home Screen, and
+          open it from there.
+        </p>
+      );
+    } else if (push.support === "unsupported") {
+      pushNote = <p className="muted small">This browser can't show alerts when the app is closed. The chime and vibration still work while it's open.</p>;
+    } else {
+      const denied = push.permission === "denied";
+      pushRow = (
+        <Switch
+          checked={push.on && !denied}
+          disabled={busy || denied || !push.publicKey}
+          label="Rest alerts when the app is closed"
+          description={
+            denied
+              ? "Notifications are blocked for Setstamp. Allow them in your browser's site settings, then come back here."
+              : (note ?? "A notification when rest is over, even with the phone locked. Needs a connection when the rest starts.")
+          }
+          onChange={(on) => {
+            setNote(null);
+            setBusy(true);
+            const done = () => setBusy(false);
+            if (!on) {
+              void disablePush(client).then(done);
+              return;
+            }
+            void enablePush(client, push.publicKey!).then((res) => {
+              done();
+              if (res === "unavailable") setNote("Couldn't set up alerts yet. Reload the app and try again.");
+              else if (res === "error") setNote("Couldn't turn on alerts. Check your connection and try again.");
+              else if (res === "unsupported") setNote("This browser can't show alerts when the app is closed.");
+            });
+          }}
+        />
+      );
+    }
+  }
+
+  return (
+    <div className="stack">
+      <ul className="ui-list">
+        <li>
+          <Switch
+            checked={sound}
+            onChange={setSoundEnabled}
+            label="Sound when rest is over"
+            description="A short chime when rest is over and a tick at 10 seconds left. A phone on silent may not play it. It also vibrates where the phone supports it."
+          />
+        </li>
+        {pushRow && <li>{pushRow}</li>}
+      </ul>
+      {pushNote}
     </div>
   );
 }

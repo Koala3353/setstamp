@@ -63,6 +63,25 @@ export default defineSchema({
     purgedThrough: v.optional(v.number()),
   }).index("by_owner", ["ownerId"]),
 
+  // Web Push subscriptions for rest alerts, one per browser/device that turned them on.
+  // Deleted when turned off, when the push service reports them gone (404/410), and with the account.
+  pushSubscriptions: defineTable({
+    userId: v.id("users"),
+    endpoint: v.string(),
+    p256dh: v.string(),
+    auth: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_endpoint", ["endpoint"]),
+
+  // The one pending "rest over" push per user (rescheduling cancels the previous one).
+  restAlerts: defineTable({
+    userId: v.id("users"),
+    scheduledId: v.id("_scheduled_functions"),
+    endsAt: v.number(),
+  }).index("by_user", ["userId"]),
+
   // Outgoing mail queue for the Apps Script webhook. Rows are deleted after
   // delivery (or after their final failure), so links never linger.
   mailOutbox: defineTable({

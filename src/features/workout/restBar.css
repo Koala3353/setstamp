@@ -1,0 +1,93 @@
+/* Rest bar "over" state and the alerts offer. Base bar styles (.wk-rest*) live in workout.css. */
+
+/* Rest over: same inverse plate, so it stays where the eye already looks, with a safety-orange
+   plate and a full orange band along the bottom. Orange here means "next set now". */
+.wk-rest--over {
+  gap: var(--s-2);
+  padding-left: var(--s-2);
+}
+.wk-rest--over::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 6px;
+  background: var(--action);
+}
+.wk-rest__plate {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-sm);
+  background: var(--action);
+  color: var(--action-ink);
+}
+.wk-rest__over {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.wk-rest__title {
+  font-size: var(--fs-lead);
+  font-weight: 760;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.wk-rest__since {
+  font-size: var(--num-l);
+  line-height: 1;
+}
+.wk-rest--over .wk-rest__label {
+  margin-left: 0;
+}
+@media (max-width: 420px) {
+  .wk-rest--over .wk-rest__over {
+    margin-right: auto;
+  }
+}
+
+/* A few slow pulses to catch the eye from across the room, then it holds still. */
+@keyframes wk-rest-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+.wk-rest__plate,
+.wk-rest--over::after {
+  animation: wk-rest-pulse 1.1s var(--ease-in-out) 5;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wk-rest__plate,
+  .wk-rest--over::after {
+    animation: none;
+  }
+}
+
+/* One-time offer to turn on alerts when the app is closed. */
+.wk-restoffer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-2) var(--s-2) var(--s-3);
+  border: 1px solid var(--seam);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+.wk-restoffer__text {
+  flex: 1 1 14rem;
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+}
+.wk-restoffer__actions {
+  display: flex;
+  gap: var(--s-1);
+  margin-left: auto;
+}

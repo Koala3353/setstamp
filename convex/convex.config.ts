@@ -22,6 +22,10 @@ const app = defineApp({
     MAIL_WEBHOOK_SECRET: v.optional(v.string()),
     // "1" on dev only: with no webhook configured, log emails instead of failing.
     MAIL_DEV_LOG: v.optional(v.string()),
+    // Web Push (rest alerts). Without the keys, push is reported as unavailable to the client.
+    VAPID_PUBLIC_KEY: v.optional(v.string()),
+    VAPID_PRIVATE_KEY: v.optional(v.string()),
+    VAPID_SUBJECT: v.optional(v.string()),
   },
 });
 

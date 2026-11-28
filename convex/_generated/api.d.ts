@@ -13,6 +13,8 @@ import type * as auth from "../auth.js";
 import type * as catalog from "../catalog.js";
 import type * as emailTemplates from "../emailTemplates.js";
 import type * as mail from "../mail.js";
+import type * as push from "../push.js";
+import type * as pushSend from "../pushSend.js";
 import type * as sync from "../sync.js";
 import type * as users from "../users.js";
 import type * as validators from "../validators.js";
@@ -29,6 +31,8 @@ declare const fullApi: ApiFromModules<{
   catalog: typeof catalog;
   emailTemplates: typeof emailTemplates;
   mail: typeof mail;
+  push: typeof push;
+  pushSend: typeof pushSend;
   sync: typeof sync;
   users: typeof users;
   validators: typeof validators;

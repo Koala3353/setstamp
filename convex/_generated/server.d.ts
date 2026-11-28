@@ -37,6 +37,9 @@ type Env = {
   readonly MAIL_WEBHOOK_SECRET: string | undefined;
   readonly MAIL_WEBHOOK_URL: string | undefined;
   readonly SITE_URL: string | undefined;
+  readonly VAPID_PRIVATE_KEY: string | undefined;
+  readonly VAPID_PUBLIC_KEY: string | undefined;
+  readonly VAPID_SUBJECT: string | undefined;
 };
 
 /**

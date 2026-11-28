@@ -9,6 +9,7 @@ import { emptyCounts } from "./sync";
 import { currentUserId, requireUserId } from "./users";
 import { vRowData, vSyncTable } from "./validators";
 import { mailConfig } from "./mail";
+import { deletePushData } from "./push";
 
 const PURGE_BATCH = 500;
 const EXPORT_PAGE = 1000;
@@ -190,6 +191,8 @@ export const deleteAllData = mutation({
   returns: v.null(),
   handler: async (ctx) => {
     const ownerId = await requireUserId(ctx);
+    // Rest-alert subscriptions go too; the lifter can turn alerts on again in Settings.
+    await deletePushData(ctx, ownerId);
     const state = await ctx.db
       .query("syncState")
       .withIndex("by_owner", (q) => q.eq("ownerId", ownerId))
@@ -240,6 +243,7 @@ export const deleteAccount = mutation({
       .unique();
     if (state) await ctx.db.delete(state._id);
     await purgeBatch(ctx, userId, null);
+    await deletePushData(ctx, userId);
     // 4. The user record; any still-valid access token now resolves to nobody.
     await ctx.db.delete(userId);
     return null;

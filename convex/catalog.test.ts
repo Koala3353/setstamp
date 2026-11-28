@@ -102,6 +102,10 @@ describe("catalog", () => {
         "auth.startChangeEmail",
         "auth.startPasswordRecovery",
         "auth.startSignInWithGoogle",
+        "push.cancelRestAlert",
+        "push.removeSubscription",
+        "push.saveSubscription",
+        "push.scheduleRestAlert",
         "sync.push",
       ].sort(),
     );

@@ -67,6 +67,9 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // Push + notificationclick handlers for rest alerts (public/rest-push-sw.js). The path is
+        // relative to sw.js, so it resolves under the /setstamp/ base on GitHub Pages too.
+        importScripts: ["rest-push-sw.js"],
         globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest,json,woff2}"],
         globIgnores: ["404.html", "og.png"],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
